@@ -782,9 +782,11 @@
   };
 
   // ======================= Lookout (web browser) =======================
-  // Shows spreck79.com. Look, don't touch: any click inside the page crashes spreck79 3.1.
-  // Browsers hide clicks inside another site's page, so a click is detected when keyboard focus
-  // moves into the embedded page (the window loses focus to the frame), or when the frame loads a new page.
+  // Shows spreck79.com. Scroll and read freely; clicking a link crashes spreck79 3.1.
+  // Browsers hide clicks inside another site's page, so a link click is detected two ways:
+  //  1. the frame loads a new page (any link that opens in the same tab), and
+  //  2. spreck79.com reports it: its page posts 'lookout:link' to os.spreck79.com when a link is
+  //     clicked while it's framed (covers new-tab links and #top, which load nothing here).
   A.lookout = {
     title: 'Lookout', icon: 'lookout',
     open() {
@@ -822,13 +824,16 @@
         view.appendChild(frame);
       }
 
-      // A click inside the frame moves focus into it, which blurs this page.
-      const onBlur = () => setTimeout(() => { if (frame && document.activeElement === frame && win.state !== 'min') S79.crash('Lookout tried to follow a link off the prairie.'); }, 0);
-      addEventListener('blur', onBlur);
+      // spreck79.com tells us when a link is clicked inside this frame (only messages from this frame count).
+      const onMessage = (e) => {
+        if (!frame || e.source !== frame.contentWindow || e.origin !== 'https://spreck79.com') return;
+        if (e.data === 'lookout:link' || (e.data && e.data.type === 'lookout:link')) S79.crash('Lookout tried to follow a link off the prairie.');
+      };
+      addEventListener('message', onMessage);
 
       const win = new Win({
         title: 'Lookout - spreck79.com', icon: I.lookout, w: Math.min(980, innerWidth - 120), h: Math.min(640, innerHeight - 120), minW: 320, minH: 220, content: box,
-        onClosed: () => removeEventListener('blur', onBlur),
+        onClosed: () => removeEventListener('message', onMessage),
       });
       box.querySelector('.home').onclick = go;
       win.setMenu([
@@ -837,7 +842,7 @@
           { sep: true },
           { label: 'Exit', action: () => win.close() },
         ] },
-        { label: 'Help', items: [{ label: 'About Lookout...', action: () => msgBox({ title: 'Lookout', icon: 'lookout', text: 'Lookout 3.1\nA window onto spreck79.com.\nLook all you like. Just don’t touch.' }) }] },
+        { label: 'Help', items: [{ label: 'About Lookout...', action: () => msgBox({ title: 'Lookout', icon: 'lookout', text: 'Lookout 3.1\nA window onto spreck79.com.\nScroll and look all you like. Just don’t follow the links.' }) }] },
       ]);
       go();
       return win;
