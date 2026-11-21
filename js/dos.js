@@ -567,6 +567,49 @@
     }
   }
 
+  // ---------------- BIOS ----------------
+  // An affectionate send-up of the beige-box BIOS screens of the early '90s: a vendor badge in the
+  // corner, a racing memory counter, drive detection and a BIOS ID string nobody could read. All original.
+  async function bios(T) {
+    let setup = false;
+    const del = (e) => { if (e.key === 'Delete' && !setup) { setup = true; e.preventDefault(); } };
+    addEventListener('keydown', del);
+    T.print('<div class="bios-badge" aria-hidden="true"><b>79</b><i></i><i></i><i></i><span>SIDE QUEST<br>ALLY</span></div>'
+      + '<span class="hi">Awkward Modular BIOS v4.79PG</span>, A Side Quest Ally');
+    T.out('Copyright (C) 1979-26, Awkward Prairie Software');
+    T.print('');
+    T.out('spreck79 486 PRAIRIE BIOS REVISION 3.1');
+    T.print('');
+    T.out('Main Processor   : Prairie 486DX2-79MHz');
+    const mem = T.out('Memory Testing   :     0K');
+    for (let k = 0; k <= 7979; k += 266) { mem.textContent = 'Memory Testing   : ' + lpad(Math.min(k, 7979), 5) + 'K'; await sleep(22); }
+    mem.textContent = 'Memory Testing   :  7979K OK';
+    await sleep(140);
+    T.out('Side Quest Cache :    79K OK');
+    await sleep(160);
+    T.print('');
+    T.out('Plug and Snack BIOS Extension v1.0A');
+    T.out('Copyright (C) 1979-26, Awkward Prairie Software');
+    await sleep(180);
+    const drives = [['Primary Master  ', 'SPRECK79 79MB'], ['Primary Slave   ', 'None'], ['Secondary Master', 'Snack Drive'], ['Secondary Slave ', 'Out hiking']];
+    for (const [where, found] of drives) {
+      const line = T.out('   Detecting IDE ' + where + ' ...');
+      await sleep(230);
+      line.textContent += ' ' + found;
+    }
+    T.print('');
+    const hint = T.print('Press <span class="hi">DEL</span> to enter SETUP');
+    T.out('11/20/79-PRAIRIE-486-2A79SQ0BC-00', 'dim');
+    for (let i = 0; i < 9 && !setup; i++) await sleep(100);
+    if (setup) {
+      hint.innerHTML = '<span class="hi">Entering SETUP...</span>';
+      await sleep(700);
+      hint.innerHTML = 'Everything is already set to beige. Nothing to change.';
+      await sleep(1600);
+    }
+    removeEventListener('keydown', del);
+  }
+
   // ---------------- boot ----------------
   // opts.mode: 'normal', 'dos' (?dos: boot and stay at the prompt) or 'desktop' (?desktop: skip S79-DOS).
   async function boot(term, opts = {}) {
@@ -583,18 +626,8 @@
     const touch = matchMedia('(pointer: coarse)').matches;
     const tapSkip = (e) => { if (e.pointerType === 'touch') skip = true; };
     addEventListener('pointerdown', tapSkip);
-    T.print('<span class="hi">spreck79 Prairie BIOS</span> v3.1   (C) 1979-2026 spreck79');
-    T.out('Low roofline chipset, horizontal bus, earth-tone video', 'dim');
-    T.print('');
-    const mem = T.out('Memory test:      0K');
-    for (let k = 0; k <= 640; k += 32) { mem.textContent = 'Memory test:  ' + lpad(k, 5) + 'K'; await sleep(18); }
-    mem.textContent = 'Memory test:    640K OK';
-    await sleep(120);
-    T.out('Side quest memory:  79K OK');
-    await sleep(120);
-    T.out('Detecting drives... C: SPRECK79  79 MB');
-    await sleep(220);
-    T.print('');
+    await bios(T);
+    T.clear();
     T.print('<span class="red">' + '\u2588'.repeat(34) + '</span>');
     T.print('<span class="och">' + '\u2584'.repeat(34) + '</span>');
     T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79-DOS 5.0</span>');

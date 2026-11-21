@@ -473,3 +473,16 @@ html, body {
   .cpl .swatches { gap: 26px 6px; }
   .cpl .wp { width: 64px; }
 }
+
+/* BIOS vendor badge (top right of the boot screen): an original "Side Quest Ally" mark. */
+.term .bios-badge {
+  float: right; width: 9.5em; margin: 0 0 8px 16px; padding: 6px 8px; border: 2px solid #D9A441;
+  font-size: .72em; line-height: 1.25; text-align: center; color: #F2EBDD; user-select: none;
+}
+.term .bios-badge b { display: block; font: 700 2.6em/1 Georgia, serif; color: #E0735C; }
+.term .bios-badge i { display: block; margin: 3px 0; }
+.term .bios-badge i:nth-of-type(1) { height: 4px; background: #9E3324; }
+.term .bios-badge i:nth-of-type(2) { height: 3px; background: #C08A2E; }
+.term .bios-badge i:nth-of-type(3) { height: 6px; background: #3E5C6B; }
+.term .bios-badge span { display: block; margin-top: 4px; letter-spacing: .12em; font-weight: 700; color: #D9A441; }
+@media (max-width: 600px) { .term .bios-badge { display: none; } }
