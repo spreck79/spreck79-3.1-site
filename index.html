@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'; frame-src https://spreck79.com">
   <title>spreck79 3.1</title>
   <link rel="icon" href="assets/icon.svg">
   <link rel="stylesheet" href="style.css">
@@ -28,6 +28,16 @@
   </div>
 
   <div id="saver" class="hidden"><canvas></canvas></div>
+
+  <div id="crash" class="hidden" role="alert">
+    <div class="cr-box">
+      <div class="cr-title"><span>spreck79</span></div>
+      <p class="cr-why"></p>
+      <p>spreck79 3.1 wandered off on a side quest it could not finish,<br>and this session cannot continue.</p>
+      <p>&#42;&nbsp; Unsaved side quests may be lost. Sorry about that.<br>&#42;&nbsp; spreck79.com will open in its place.</p>
+      <p class="cr-count">Rebooting into spreck79.com <b>2</b> <span class="cr-cursor">_</span></p>
+    </div>
+  </div>
 
   <script src="js/fs.js"></script>
   <script src="js/icons.js"></script>

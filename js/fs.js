@@ -42,6 +42,7 @@
         'GOPHER.EXE': file('', { app: 'gopher', size: 27904 }),
         'CONTROL.EXE': file('', { app: 'control', size: 57936 }),
         'S79PROMT.EXE': file('', { app: 'prompt', size: 9248 }),
+        'LOOKOUT.EXE': file('', { app: 'lookout', size: 61979 }),
         'S79.INI': file('[desktop]\r\ntheme=prairie\r\nwallpaper=grid\r\n\r\n[spreck79]\r\nmotto=All side quests. No main story.\r\n'),
         SYSTEM: dir({
           'PRAIRIE.SYS': file('', { size: 7979 }),
@@ -68,6 +69,12 @@
   let root;
   try { root = JSON.parse(localStorage.getItem(KEY)); } catch (e) { root = null; }
   if (!root || root.type !== 'dir') root = defaultDisk();
+  // Disks saved before a program shipped don't have it yet: add any missing programs to C:\S79.
+  (function addNewPrograms() {
+    const fresh = defaultDisk().children.S79.children, s79 = root.children && root.children.S79;
+    if (!s79 || s79.type !== 'dir') return;
+    for (const [name, node] of Object.entries(fresh)) if (node.app && !s79.children[name]) s79.children[name] = node;
+  })();
 
   let saveTimer = null;
   function save() {

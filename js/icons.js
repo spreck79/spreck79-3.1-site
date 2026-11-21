@@ -48,6 +48,10 @@
     stop: wrap(`<rect x="3" y="3" width="34" height="34" fill="${R}" stroke="${W}" stroke-width="2"/><rect x="10" y="18" width="20" height="4" fill="${C}"/>`),
     question: wrap(`<rect x="3" y="3" width="34" height="34" fill="${G}" stroke="${W}" stroke-width="2"/><path d="M14 14 Q14 9 20 9 Q26 9 26 14 Q26 18 21 20 L21 24" fill="none" stroke="${C}" stroke-width="4" stroke-linecap="square" shape-rendering="geometricPrecision"/><rect x="19" y="28" width="4" height="4" fill="${C}"/>`),
     run: wrap(`<rect x="4" y="8" width="32" height="24" fill="${C}" stroke="${W}" stroke-width="2"/><path d="M14 13 L26 20 L14 27 Z" fill="${R}"/>`),
+    // Lookout: a window onto a low prairie horizon, with a red sun.
+    lookout: wrap(`<rect x="3" y="5" width="34" height="30" fill="${C}" stroke="${W}" stroke-width="2"/><rect x="4" y="6" width="32" height="5" fill="${S}"/>
+      <rect x="5" y="13" width="30" height="12" fill="#8FB0BF"/><rect x="24" y="15" width="6" height="6" fill="${R}"/>
+      <rect x="5" y="25" width="30" height="3" fill="${O}"/><rect x="5" y="28" width="30" height="6" fill="${G}"/><rect x="19" y="11" width="2" height="23" fill="${W}"/>`),
   };
 
   // small 16px versions just reuse the same svg

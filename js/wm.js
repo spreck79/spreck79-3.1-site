@@ -204,7 +204,9 @@
         Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
         if (mode !== 'move' && this.o.onResize) this.o.onResize();
       };
-      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); if (this.o.onResize) this.o.onResize(); };
+      // While dragging, embedded pages (Lookout) must not swallow the pointer, or the drag sticks.
+      document.body.classList.add('dragging');
+      const up = () => { document.body.classList.remove('dragging'); removeEventListener('pointermove', move); removeEventListener('pointerup', up); if (this.o.onResize) this.o.onResize(); };
       addEventListener('pointermove', move);
       addEventListener('pointerup', up);
     }

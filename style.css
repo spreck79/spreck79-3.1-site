@@ -389,6 +389,29 @@ legend { padding: 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .12e
 .tasklist { padding: 10px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .tasklist .listbox { flex: 1; }
 
+/* Lookout (browser) */
+.lookout { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.lookout .lk-bar { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--frame); background: var(--surface); }
+.lookout .lk-bar .addr { flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; color: var(--ink-muted); }
+.lookout .lk-view { flex: 1; min-height: 0; position: relative; background: #FFFFFF; }
+.lookout iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #FFFFFF; }
+.lookout .lk-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #5E5245; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+body.dragging iframe { pointer-events: none; }
+
+/* The spreck79 crash screen */
+#crash {
+  position: fixed; inset: 0; z-index: 300000; display: grid; place-items: center;
+  background: #0018A8; color: #F2EBDD; font: 20px/28px var(--mono); cursor: none;
+}
+#crash.hidden { display: none; }
+#crash .cr-box { width: min(760px, calc(100% - 32px)); }
+#crash .cr-title { text-align: center; margin-bottom: 24px; }
+#crash .cr-title span { background: #E4D8C1; color: #0018A8; padding: 0 10px; font-weight: 700; }
+#crash p { margin: 0 0 22px; }
+#crash .cr-count { text-align: center; margin-top: 8px; }
+#crash .cr-cursor { animation: cr-blink 1s steps(1) infinite; }
+@keyframes cr-blink { 50% { opacity: 0; } }
+
 /* Screensaver */
 #saver { position: fixed; inset: 0; z-index: 200000; background: #0d0b09; cursor: none; }
 #saver.hidden { display: none; }

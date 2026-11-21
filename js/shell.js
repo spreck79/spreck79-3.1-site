@@ -19,6 +19,33 @@
       if (k === 'saver') saver.reset();
     },
 
+    // Where the crash screen sends the tab. Set to null to stay put (handy when testing).
+    crashTarget: 'https://spreck79.com/',
+
+    // The spreck79 crash screen: covers everything, counts down 2 seconds, then leaves for spreck79.com.
+    crash(reason) {
+      if (S79.crashed) return;
+      S79.crashed = true;
+      saver.stop();
+      WM.closeMenus();
+      const el = document.getElementById('crash');
+      el.querySelector('.cr-why').textContent = reason || 'Something on the prairie went sideways.';
+      el.classList.remove('hidden');
+      const block = (e) => { e.preventDefault(); e.stopPropagation(); };
+      ['keydown', 'pointerdown', 'contextmenu', 'wheel'].forEach((t) => addEventListener(t, block, { capture: true, passive: false }));
+      const count = el.querySelector('.cr-count b');
+      let left = 2;
+      count.textContent = left;
+      const tick = setInterval(() => {
+        left--;
+        count.textContent = Math.max(left, 0);
+        if (left <= 0) {
+          clearInterval(tick);
+          if (S79.crashTarget) location.href = S79.crashTarget;
+        }
+      }, 1000);
+    },
+
     fullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); },
 
     launch(id, opts) {

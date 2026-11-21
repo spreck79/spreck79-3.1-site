@@ -7,7 +7,7 @@
   // ======================= Quest Manager =======================
   const GROUPS = [
     { id: 'main', title: 'Main', x: 12, y: 12, w: 380, h: 190, items: ['prompt', 'cabinet', 'control', 'readme', 'about'] },
-    { id: 'side', title: 'Side Quests', x: 404, y: 12, w: 330, h: 190, items: ['jotter', 'sketch', 'tally', 'clock'] },
+    { id: 'side', title: 'Side Quests', x: 404, y: 12, w: 330, h: 190, items: ['jotter', 'sketch', 'tally', 'clock', 'lookout'] },
     { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher'], min: true },
     { id: 'log', title: 'Quest Log', x: 264, y: 214, w: 360, h: 150, dynamic: 'C:\\QUESTS', min: true },
   ];
@@ -22,6 +22,7 @@
     tally: { label: 'Tally', icon: 'tally', run: () => S79.launch('tally') },
     clock: { label: 'Clock', icon: 'clock', run: () => S79.launch('clock') },
     gopher: { label: 'Gopher Fields', icon: 'gopher', run: () => S79.launch('gopher') },
+    lookout: { label: 'Lookout', icon: 'lookout', run: () => S79.launch('lookout') },
   };
 
   function iconEl(label, svg, run) {
@@ -752,6 +753,69 @@
         bb.firstChild.onclick = () => finish();
         c.appendChild(bb);
       });
+    },
+  };
+
+  // ======================= Lookout (web browser) =======================
+  // Shows spreck79.com. Look, don't touch: any click inside the page crashes spreck79 3.1.
+  // Browsers hide clicks inside another site's page, so a click is detected when keyboard focus
+  // moves into the embedded page (the window loses focus to the frame), or when the frame loads a new page.
+  A.lookout = {
+    title: 'Lookout', icon: 'lookout',
+    open() {
+      const HOME = 'https://spreck79.com/';
+      const box = $(`<div class="lookout">
+        <div class="lk-bar">
+          <button class="btn sm home" title="Back to the home page">Home</button>
+          <span class="label-caps">Address</span>
+          <input class="field addr" readonly spellcheck="false" tabindex="-1">
+        </div>
+        <div class="lk-view"><div class="lk-loading">Looking out over spreck79.com...</div></div>
+        <div class="statusbar"><span class="st">Opening spreck79.com...</span></div>
+      </div>`);
+      const view = box.querySelector('.lk-view'), st = box.querySelector('.st'), loading = box.querySelector('.lk-loading');
+      box.querySelector('.addr').value = HOME;
+      let frame = null, loads = 0;
+
+      function go() {
+        if (frame) frame.remove();
+        loads = 0;
+        loading.style.display = '';
+        st.textContent = 'Opening spreck79.com...';
+        frame = document.createElement('iframe');
+        frame.title = 'spreck79.com';
+        // No allow-popups: links that open a new tab can't escape; no allow-top-navigation: the page can't take over.
+        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+        frame.referrerPolicy = 'no-referrer';
+        frame.src = HOME;
+        frame.addEventListener('load', () => {
+          loads++;
+          loading.style.display = 'none';
+          st.textContent = 'Done';
+          if (loads > 1) S79.crash('Lookout followed a link it was told not to touch.'); // the page went somewhere new
+        });
+        view.appendChild(frame);
+      }
+
+      // A click inside the frame moves focus into it, which blurs this page.
+      const onBlur = () => setTimeout(() => { if (frame && document.activeElement === frame && win.state !== 'min') S79.crash('Lookout tried to follow a link off the prairie.'); }, 0);
+      addEventListener('blur', onBlur);
+
+      const win = new Win({
+        title: 'Lookout - spreck79.com', icon: I.lookout, w: Math.min(980, innerWidth - 120), h: Math.min(640, innerHeight - 120), minW: 320, minH: 220, content: box,
+        onClosed: () => removeEventListener('blur', onBlur),
+      });
+      box.querySelector('.home').onclick = go;
+      win.setMenu([
+        { label: 'File', items: [
+          { label: 'Home', action: go },
+          { sep: true },
+          { label: 'Exit', action: () => win.close() },
+        ] },
+        { label: 'Help', items: [{ label: 'About Lookout...', action: () => msgBox({ title: 'Lookout', icon: 'lookout', text: 'Lookout 3.1\nA window onto spreck79.com.\nLook all you like. Just don’t touch.' }) }] },
+      ]);
+      go();
+      return win;
     },
   };
 
