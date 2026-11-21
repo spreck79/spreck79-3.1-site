@@ -22,7 +22,7 @@
     // Where the crash screen sends the tab. Set to null to stay put (handy when testing).
     crashTarget: 'https://spreck79.com/',
 
-    // The spreck79 crash screen: covers everything, counts down 2 seconds, then leaves for spreck79.com.
+    // The spreck79 crash screen: covers everything, counts down 6 seconds, then leaves for spreck79.com.
     crash(reason) {
       if (S79.crashed) return;
       S79.crashed = true;
@@ -34,7 +34,7 @@
       const block = (e) => { e.preventDefault(); e.stopPropagation(); };
       ['keydown', 'pointerdown', 'contextmenu', 'wheel'].forEach((t) => addEventListener(t, block, { capture: true, passive: false }));
       const count = el.querySelector('.cr-count b');
-      let left = 2;
+      let left = 6;
       count.textContent = left;
       const tick = setInterval(() => {
         left--;
