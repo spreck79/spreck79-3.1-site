@@ -303,6 +303,13 @@
   // ?desktop skips S79-DOS; ?dos boots and stays at the prompt (used by the card on spreck79.com).
   const params = new URLSearchParams(location.search);
   const bootMode = params.has('desktop') ? 'desktop' : params.has('dos') ? 'dos' : 'normal';
+  // ?desktop is a one-time shortcut (used when booting from the card). Take it out of the address
+  // so REBOOT and page refreshes go through the full BIOS and S79-DOS boot again.
+  if (bootMode === 'desktop') {
+    params.delete('desktop');
+    const rest = params.toString();
+    try { history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash); } catch (e) {}
+  }
 
   addEventListener('DOMContentLoaded', () => {
     apply();
