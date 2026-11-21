@@ -299,6 +299,23 @@
   });
   addEventListener('keydown', (e) => { if (e.key === 'F11' && !S79.guiRunning) { e.preventDefault(); S79.fullscreen(); } });
 
+  // ---------- phone keyboard ----------
+  // When an on-screen keyboard opens, fit full-screen S79-DOS (and S79EDIT) into the part of the
+  // screen that's still visible, so the editor's buttons and the prompt aren't hidden behind it.
+  if (window.visualViewport && matchMedia('(pointer: coarse)').matches) {
+    const vv = window.visualViewport;
+    const fit = () => {
+      const ds = document.getElementById('dos-screen');
+      if (!ds) return;
+      const covered = innerHeight - vv.height > 80; // keyboard (or similar) is up
+      ds.style.top = covered ? vv.offsetTop + 'px' : '';
+      ds.style.height = covered ? vv.height + 'px' : '';
+      ds.style.bottom = covered ? 'auto' : '';
+    };
+    vv.addEventListener('resize', fit);
+    vv.addEventListener('scroll', fit);
+  }
+
   // ---------- go ----------
   // ?desktop skips S79-DOS; ?dos boots and stays at the prompt (used by the card on spreck79.com).
   const params = new URLSearchParams(location.search);

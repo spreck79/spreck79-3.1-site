@@ -160,29 +160,51 @@
       else if (hits.length > 1) { this.out(hits.map((h) => h.name).join('  '), 'dim'); }
     }
 
-    readKey() {
+    // Waits for one key. For touch screens: opts.anyTap lets a tap on the screen count as a key,
+    // and opts.buttons shows tappable keys (e.g. Y and N) on the last line.
+    readKey(opts = {}) {
       return new Promise((resolve) => {
         const inp = document.createElement('input');
         inp.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;';
         this.el.appendChild(inp);
-        inp.focus();
-        const h = (e) => {
+        inp.focus({ preventScroll: true });
+        let btnBox = null;
+        const finish = (key) => {
+          inp.remove();
+          if (btnBox) btnBox.remove();
+          this.el.removeEventListener('mouseup', refocus);
+          this.el.removeEventListener('click', onTap);
+          resolve(key);
+        };
+        inp.addEventListener('keydown', (e) => {
           if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
           e.preventDefault();
-          inp.remove();
-          resolve(e.key);
-        };
-        inp.addEventListener('keydown', h);
-        const refocus = () => { if (inp.isConnected) inp.focus(); else this.el.removeEventListener('mouseup', refocus); };
+          finish(e.key);
+        });
+        const refocus = () => { if (inp.isConnected) inp.focus({ preventScroll: true }); };
         this.el.addEventListener('mouseup', refocus);
+        const onTap = (e) => { if (opts.anyTap && !(e.target.closest && e.target.closest('.tapkey'))) finish(' '); };
+        this.el.addEventListener('click', onTap);
+        if (opts.buttons) {
+          btnBox = document.createElement('span');
+          btnBox.className = 'tapkeys';
+          for (const k of opts.buttons) {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'tapkey'; b.textContent = k;
+            b.addEventListener('click', (e) => { e.stopPropagation(); finish(k); });
+            btnBox.appendChild(b);
+          }
+          (this.el.lastElementChild || this.el).appendChild(btnBox);
+          this.scroll();
+        }
       });
     }
 
     async confirm(q) {
-      this.print(esc(q) + ' (Y/N)?');
+      const line = this.print(esc(q) + ' (Y/N)?');
       for (;;) {
-        const k = (await this.readKey()).toUpperCase();
-        if (k === 'Y' || k === 'N') { this.el.lastChild.textContent += k; return k === 'Y'; }
+        const k = (await this.readKey({ buttons: ['Y', 'N'] })).toUpperCase();
+        if (k === 'Y' || k === 'N') { line.appendChild(document.createTextNode(k)); return k === 'Y'; }
         if (k === 'ESCAPE') return false;
       }
     }
@@ -272,8 +294,8 @@
           T.out(rest); return;
         case 'REM': return;
         case 'PAUSE':
-          T.out('Press any key to continue . . .');
-          await T.readKey();
+          T.out(matchMedia('(pointer: coarse)').matches ? 'Press any key or tap to continue . . .' : 'Press any key to continue . . .');
+          await T.readKey({ anyTap: true });
           return;
         case 'DATE':
           T.out('Current date is ' + new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' }));
@@ -498,9 +520,11 @@
         const host = this.el.parentElement;
         const ed = document.createElement('div');
         ed.className = 'dos-edit';
-        ed.innerHTML = `<div class="bar"></div><textarea spellcheck="false"></textarea><div class="bar"><b>F2</b>=Save  <b>Esc</b>=Exit  <b>F3</b>=Save As   S79EDIT 5.0</div>`;
+        // The key hints are buttons too, so phones (no F-keys or Esc) can tap them.
+        ed.innerHTML = `<div class="bar"></div><textarea spellcheck="false"></textarea><div class="bar keys">`
+          + `<button type="button" class="tapkey" data-k="F2"><b>F2</b>=Save</button>  <button type="button" class="tapkey" data-k="Esc"><b>Esc</b>=Exit</button>  <button type="button" class="tapkey" data-k="F3"><b>F3</b>=Save As</button>   <span class="ver">S79EDIT 5.0</span></div>`;
         const top = ed.querySelector('.bar'), ta = ed.querySelector('textarea');
-        let dirty = false;
+        let dirty = false, busy = false;
         const setTop = (msg) => { top.textContent = '  S79EDIT  \u2502  ' + (path || 'UNTITLED') + (dirty ? ' *' : '') + (msg ? '   \u2502  ' + msg : ''); };
         ta.value = path && FS.isFile(path) ? FS.read(path).replace(/\r\n/g, '\n') : '';
         setTop();
@@ -516,19 +540,34 @@
           ta.focus();
           return !dirty;
         };
+        const exit = async () => {
+          if (dirty) {
+            const a = await this.askInBar(ed, 'Save changes? (Y/N/Esc) ', '', true);
+            if (a === null) { ta.focus(); return; }
+            if (a === 'Y' && !(await doSave(false))) return;
+          }
+          ed.remove();
+          resolve();
+        };
+        // One command at a time, whether it came from a key or a tap.
+        const command = async (k) => {
+          if (busy) return;
+          busy = true;
+          try {
+            if (k === 'F2') await doSave(false);
+            else if (k === 'F3') await doSave(true);
+            else if (k === 'Esc') await exit();
+          } finally { busy = false; }
+        };
+        ed.querySelectorAll('.tapkey').forEach((b) => {
+          b.addEventListener('pointerdown', (e) => e.preventDefault()); // keep the text box (and phone keyboard) focused
+          b.addEventListener('click', () => command(b.dataset.k));
+        });
         ta.addEventListener('keydown', async (e) => {
-          if (e.key === 'F2') { e.preventDefault(); await doSave(false); }
-          else if (e.key === 'F3') { e.preventDefault(); await doSave(true); }
-          else if (e.key === 'Escape') {
-            e.preventDefault();
-            if (dirty) {
-              const a = await this.askInBar(ed, 'Save changes? (Y/N/Esc) ', '', true);
-              if (a === null) { ta.focus(); return; }
-              if (a === 'Y' && !(await doSave(false))) return;
-            }
-            ed.remove();
-            resolve();
-          } else if (e.key === 'Tab') {
+          if (e.key === 'F2') { e.preventDefault(); await command('F2'); }
+          else if (e.key === 'F3') { e.preventDefault(); await command('F3'); }
+          else if (e.key === 'Escape') { e.preventDefault(); await command('Esc'); }
+          else if (e.key === 'Tab') {
             e.preventDefault();
             const s = ta.selectionStart;
             ta.setRangeText('    ', s, ta.selectionEnd, 'end');
@@ -540,18 +579,31 @@
       this.focusInput();
     }
 
+    // Asks on S79EDIT's top bar. Keys work as before; the buttons answer the same thing for touch screens.
     askInBar(ed, label, def, yn) {
       return new Promise((resolve) => {
         const bar = ed.querySelector('.bar');
         const old = bar.innerHTML;
         bar.innerHTML = '';
+        bar.classList.add('asking');
         const lab = document.createElement('span'); lab.textContent = '  ' + label;
         const inp = document.createElement('input');
-        inp.style.cssText = 'background:transparent;border:0;outline:0;font:inherit;color:inherit;width:60%';
+        inp.style.cssText = yn
+          ? 'background:transparent;border:0;outline:0;font:inherit;color:inherit;width:1ch;caret-color:transparent'
+          : 'background:transparent;border:0;outline:0;font:inherit;color:inherit;width:60%;min-width:10ch';
         inp.value = def;
-        bar.append(lab, inp);
+        const answers = yn ? [['Yes', 'Y'], ['No', 'N'], ['Cancel', null]] : [['OK', 'ok'], ['Cancel', null]];
+        const btns = answers.map(([text, v]) => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'tapkey ask'; b.textContent = text;
+          b.addEventListener('pointerdown', (e) => e.preventDefault());
+          b.addEventListener('click', () => done(v === 'ok' ? inp.value.trim() : v));
+          return b;
+        });
+        bar.append(lab, inp, ...btns);
         inp.focus(); inp.select();
-        const done = (v) => { bar.innerHTML = old; resolve(v); };
+        let finished = false;
+        const done = (v) => { if (finished) return; finished = true; bar.classList.remove('asking'); bar.innerHTML = old; resolve(v); };
         inp.addEventListener('keydown', (e) => {
           e.stopPropagation();
           if (yn) {

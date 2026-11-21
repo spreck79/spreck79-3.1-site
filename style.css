@@ -486,3 +486,26 @@ html, body {
 .term .bios-badge i:nth-of-type(3) { height: 6px; background: #3E5C6B; }
 .term .bios-badge span { display: block; margin-top: 4px; letter-spacing: .12em; font-weight: 700; color: #D9A441; }
 @media (max-width: 600px) { .term .bios-badge { display: none; } }
+
+/* ---------- tappable keys in full-screen S79-DOS and S79EDIT ---------- */
+/* With a keyboard they look like the plain key hints they always were. */
+.tapkey {
+  font: inherit; color: inherit; background: transparent; border: 0; padding: 0; margin: 0;
+  cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;
+}
+.tapkey b { color: #9E3324; }
+.dos-edit .bar.keys { display: flex; flex-wrap: wrap; align-items: center; column-gap: 2ch; }
+.dos-edit .bar.keys .ver { margin-left: auto; }
+.dos-edit .bar.asking { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 1ch; white-space: normal; }
+.dos-edit .bar .tapkey.ask { border: 1px solid currentColor; padding: 0 1ch; }
+.term .tapkeys { display: inline-flex; gap: 1ch; margin-left: 1ch; }
+.term .tapkeys .tapkey { border: 1px solid currentColor; padding: 0 1.2ch; color: var(--dos-hi); }
+.dos-edit .bar.keys .tapkey:hover, .dos-edit .bar .tapkey.ask:hover { text-decoration: underline; }
+
+@media (pointer: coarse) {
+  /* Phones: make them look and feel like buttons, big enough for a thumb. */
+  .dos-edit .bar { white-space: normal; padding: 4px 8px; }
+  .dos-edit .bar.keys { gap: 6px; padding: 6px 8px; }
+  .dos-edit .bar .tapkey { border: 1px solid #2E2620; background: #F2EBDD; padding: 6px 10px; min-height: 36px; border-radius: 2px; }
+  .term .tapkeys .tapkey { padding: 4px 14px; min-height: 34px; }
+}
