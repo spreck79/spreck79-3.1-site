@@ -4,7 +4,7 @@ All side quests. No main story.
 
 A Prairie-style retro desktop with its own command line, S79DOS, running right in the browser.
 
-**Play it:** https://spreck79.github.io/spreck79-3.1-site/
+**Play it:** https://os.spreck79.com
 
 - It boots into S79DOS first, then starts the desktop. Press F8 while it boots to stay at the `C:\>` prompt.
 - Type `HELP` at the prompt to list the commands.
