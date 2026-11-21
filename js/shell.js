@@ -4,7 +4,7 @@
   const SKEY = 's79-settings-v1';
   // True when another page shows this one in a frame (the card on spreck79.com).
   const FRAMED = window.top !== window;
-  const defaults = { theme: 'prairie', wallpaper: 'grid', saver: 3, chime: true };
+  const defaults = { theme: 'prairie', wallpaper: 'grid', saver: 3, saverStyle: 'lines', chime: true };
   let settings;
   try { settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem(SKEY) || '{}')); } catch (e) { settings = Object.assign({}, defaults); }
 
@@ -234,7 +234,7 @@
     } catch (e) {}
   }
 
-  // ---------- screen saver: "Prairie Lines" ----------
+  // ---------- screen savers: "Prairie Lines" and "Bouncing 79" ----------
   const saver = (S79.saver = (function () {
     let idle = null, raf = null, on = false;
     const el = () => document.getElementById('saver');
@@ -243,9 +243,58 @@
       if (on) stop();
       if (S79.guiRunning && settings.saver > 0) idle = setTimeout(start, settings.saver * 60000);
     }
-    function start() {
+    function start(style) {
+      style = style || settings.saverStyle || 'lines';
+      if (style === 'bounce') return startBounce();
+      return startLines();
+    }
+
+    // "Bouncing 79": the spreck79 logo on a tile drifts around and bounces off the edges.
+    // Every bounce switches the tile's color; a perfect corner hit gets a little celebration.
+    const logos = {};
+    for (const [k, src] of [['color', 'assets/logo.svg'], ['white', 'assets/logo-white.svg']]) { const im = new Image(); im.src = src; logos[k] = im; }
+    const TILES = [['#F2EBDD', 'color'], ['#3E5C6B', 'white'], ['#9E3324', 'white'], ['#5F6E41', 'white'], ['#C08A2E', 'white']];
+    function startBounce() {
       const s = el(); const cv = s.querySelector('canvas');
       s.classList.remove('hidden'); on = true;
+      const dpr = devicePixelRatio || 1, W = innerWidth, H = innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const tw = Math.round(Math.min(280, Math.max(150, W * 0.3))), th = Math.round(tw * 0.66);
+      let x = Math.random() * (W - tw), y = Math.random() * (H - th);
+      const speed = Math.max(1.4, Math.min(W, H) / 380);
+      let vx = speed * (Math.random() < 0.5 ? -1 : 1), vy = speed * 0.82 * (Math.random() < 0.5 ? -1 : 1);
+      let tile = 0, cheer = 0, corners = +localStorage.getItem('s79-saver-corners') || 0;
+      const frame = () => {
+        x += vx; y += vy;
+        let hitX = false, hitY = false;
+        if (x <= 0) { x = 0; vx = Math.abs(vx); hitX = true; } else if (x + tw >= W) { x = W - tw; vx = -Math.abs(vx); hitX = true; }
+        if (y <= 0) { y = 0; vy = Math.abs(vy); hitY = true; } else if (y + th >= H) { y = H - th; vy = -Math.abs(vy); hitY = true; }
+        if (hitX || hitY) tile = (tile + 1) % TILES.length;
+        if (hitX && hitY) { cheer = 150; corners++; try { localStorage.setItem('s79-saver-corners', corners); } catch (e) {} }
+        g.fillStyle = '#0d0b09'; g.fillRect(0, 0, W, H);
+        const [bg, logo] = TILES[tile];
+        g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(x + 8, y + 8, tw, th); // flat Prairie shadow
+        g.fillStyle = bg; g.fillRect(x, y, tw, th);
+        const im = logos[logo];
+        if (im.complete && im.naturalWidth) { const lw = tw * 0.78, lh = lw * (im.naturalHeight / im.naturalWidth); g.drawImage(im, x + (tw - lw) / 2, y + (th - lh) / 2, lw, lh); }
+        if (cheer > 0) {
+          cheer--;
+          g.font = '700 ' + Math.round(Math.min(64, W / 9)) + 'px Georgia, serif'; g.textAlign = 'center';
+          g.fillStyle = cheer % 20 < 10 ? '#D9A441' : '#E0735C';
+          g.fillText('CORNER!', W / 2, H * 0.22);
+          g.textAlign = 'left';
+        }
+        if (corners) { g.font = '13px Consolas, monospace'; g.fillStyle = '#8C7F6A'; g.fillText('Perfect corners: ' + corners, 14, H - 14); }
+        raf = requestAnimationFrame(frame);
+      };
+      frame();
+    }
+
+    function startLines() {
+      const s = el(); const cv = s.querySelector('canvas');
+      s.classList.remove('hidden'); on = true;
+      cv.style.width = ''; cv.style.height = '';
       const W = (cv.width = innerWidth), H = (cv.height = innerHeight), g = cv.getContext('2d');
       g.fillStyle = '#0d0b09'; g.fillRect(0, 0, W, H);
       const cols = ['#9E3324', '#C08A2E', '#3E5C6B', '#5F6E41', '#E0735C', '#D9A441', '#8FB0BF'];

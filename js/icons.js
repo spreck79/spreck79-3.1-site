@@ -52,6 +52,13 @@
     lookout: wrap(`<rect x="3" y="5" width="34" height="30" fill="${C}" stroke="${W}" stroke-width="2"/><rect x="4" y="6" width="32" height="5" fill="${S}"/>
       <rect x="5" y="13" width="30" height="12" fill="#8FB0BF"/><rect x="24" y="15" width="6" height="6" fill="${R}"/>
       <rect x="5" y="25" width="30" height="3" fill="${O}"/><rect x="5" y="28" width="30" height="6" fill="${G}"/><rect x="19" y="11" width="2" height="23" fill="${W}"/>`),
+    // Harvest: a red tractor pulling a hay wagon across the field.
+    harvest: wrap(`<rect x="2" y="26" width="36" height="10" fill="${G}" stroke="${W}" stroke-width="2"/>
+      <rect x="3" y="15" width="11" height="9" fill="${O}" stroke="${W}" stroke-width="1.5"/><rect x="4" y="18" width="9" height="1.5" fill="#9E7020"/><rect x="4" y="21" width="9" height="1.5" fill="#9E7020"/>
+      <rect x="14" y="21" width="4" height="2" fill="${W}"/>
+      <rect x="18" y="14" width="17" height="10" fill="${R}" stroke="${W}" stroke-width="1.5"/><rect x="20" y="9" width="7" height="6" fill="${S}" stroke="${W}" stroke-width="1.5"/>
+      <rect x="32" y="9" width="2" height="5" fill="${W}"/>
+      <rect x="19" y="22" width="7" height="7" fill="#171310"/><rect x="21.5" y="24.5" width="2" height="2" fill="${C}"/><rect x="29" y="23" width="5" height="5" fill="#171310"/>`),
   };
 
   // small 16px versions just reuse the same svg

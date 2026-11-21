@@ -8,7 +8,7 @@
   const GROUPS = [
     { id: 'main', title: 'Main', x: 12, y: 12, w: 380, h: 190, items: ['prompt', 'cabinet', 'control', 'readme', 'about'] },
     { id: 'side', title: 'Side Quests', x: 404, y: 12, w: 330, h: 190, items: ['jotter', 'sketch', 'tally', 'clock', 'lookout'] },
-    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher'], min: true },
+    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher', 'harvest'], min: true },
     { id: 'log', title: 'Quest Log', x: 264, y: 214, w: 360, h: 150, dynamic: 'C:\\QUESTS', min: true },
   ];
   const ITEM = {
@@ -23,6 +23,7 @@
     clock: { label: 'Clock', icon: 'clock', run: () => S79.launch('clock') },
     gopher: { label: 'Gopher Fields', icon: 'gopher', run: () => S79.launch('gopher') },
     lookout: { label: 'Lookout', icon: 'lookout', run: () => S79.launch('lookout') },
+    harvest: { label: 'Harvest', icon: 'harvest', run: () => S79.launch('harvest') },
   };
 
   function iconEl(label, svg, run) {
@@ -719,7 +720,7 @@
         </fieldset>
         <fieldset><legend>Desktop wallpaper</legend><div class="swatches" style="padding-bottom:18px"></div></fieldset>
         <fieldset><legend>Screen saver</legend>
-          <div class="row"><select class="field saver"><option value="0">None</option><option value="1">After 1 minute</option><option value="3">After 3 minutes</option><option value="5">After 5 minutes</option><option value="10">After 10 minutes</option></select>
+          <div class="row" style="flex-wrap:wrap"><select class="field saverstyle"><option value="lines">Prairie Lines</option><option value="bounce">Bouncing 79</option></select><select class="field saver"><option value="0">None</option><option value="1">After 1 minute</option><option value="3">After 3 minutes</option><option value="5">After 5 minutes</option><option value="10">After 10 minutes</option></select>
           <button class="btn sm test">Test</button></div>
         </fieldset>
         <fieldset><legend>Startup</legend>
@@ -738,7 +739,8 @@
         sw.appendChild(d);
       }
       const saver = box.querySelector('.saver'); saver.value = String(st.saver); saver.onchange = () => S79.set('saver', +saver.value);
-      box.querySelector('.test').onclick = () => S79.saver.start();
+      const style = box.querySelector('.saverstyle'); style.value = st.saverStyle || 'lines'; style.onchange = () => S79.set('saverStyle', style.value);
+      box.querySelector('.test').onclick = () => S79.saver.start(style.value);
       const chime = box.querySelector('.chime'); chime.checked = st.chime; chime.onchange = () => S79.set('chime', chime.checked);
       const boot = box.querySelector('.boot');
       const ae = () => (FS.isFile('C:\\AUTOEXEC.BAT') ? FS.read('C:\\AUTOEXEC.BAT') : '');
@@ -778,6 +780,182 @@
         bb.firstChild.onclick = () => finish();
         c.appendChild(bb);
       });
+    },
+  };
+
+  // ======================= Harvest (game) =======================
+  // Drive the tractor around the field and pick up hay bales. Every bale hooks another wagon on
+  // behind. Don't hit the fence or your own wagons. Arrow keys / WASD, or swipe and the on-screen
+  // arrows on a phone. Space or P pauses.
+  A.harvest = {
+    title: 'Harvest', icon: 'harvest',
+    open() {
+      const COLS = 20, ROWS = 15;
+      const coarse = matchMedia('(pointer: coarse)').matches;
+      // Fit the field to the screen: roomy on desktop, as big as possible on a phone.
+      const cell = Math.max(12, Math.min(24, Math.floor((Math.min(innerWidth, 760) - 44) / COLS), Math.floor((innerHeight - (coarse ? 330 : 230)) / ROWS)));
+      const box = $(`<div class="harvest">
+        <div class="hud"><div class="led bales">000</div><div class="hv-title label-caps">Bales</div><div class="hv-title label-caps" style="margin-left:auto">Best</div><div class="led best">000</div></div>
+        <div class="hv-field"><canvas></canvas><div class="hv-msg"></div></div>
+        <div class="hv-pad">
+          <button class="btn hv-up" aria-label="Up">&#9650;</button>
+          <button class="btn hv-left" aria-label="Left">&#9664;</button><button class="btn hv-go" aria-label="Start or pause">&#10074;&#10074;</button><button class="btn hv-right" aria-label="Right">&#9654;</button>
+          <button class="btn hv-down" aria-label="Down">&#9660;</button>
+        </div>
+      </div>`);
+      if (!coarse) box.querySelector('.hv-pad').remove();
+      const cv = box.querySelector('canvas'), msgEl = box.querySelector('.hv-msg'), balesEl = box.querySelector('.bales'), bestEl = box.querySelector('.best');
+      const W = COLS * cell, H = ROWS * cell, dpr = devicePixelRatio || 1;
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const led = (n) => String(Math.min(999, n)).padStart(3, '0');
+      let best = +localStorage.getItem('s79-harvest-best') || 0;
+      bestEl.textContent = led(best);
+
+      let train, dir, queue, bale, bonus, score, state, timer, tickMs, ticks; // state: ready | playing | paused | over
+      const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+      const free = () => {
+        for (let tries = 0; tries < 500; tries++) {
+          const p = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+          if (!train.some((t) => t.x === p.x && t.y === p.y) && !(bale && bale.x === p.x && bale.y === p.y) && !(bonus && bonus.x === p.x && bonus.y === p.y)) return p;
+        }
+        return null;
+      };
+      function reset() {
+        clearInterval(timer);
+        train = [{ x: 6, y: 7 }, { x: 5, y: 7 }, { x: 4, y: 7 }];
+        dir = 'right'; queue = []; bale = null; bonus = null; score = 0; tickMs = 150; ticks = 0;
+        bale = free();
+        balesEl.textContent = led(0);
+        state = 'ready';
+        say(coarse ? 'Tap ▶ or swipe to start' : 'Press an arrow key to start');
+        draw();
+      }
+      function say(text) { msgEl.textContent = text || ''; msgEl.style.display = text ? '' : 'none'; }
+      function run() { clearInterval(timer); timer = setInterval(step, tickMs); }
+      function play() { if (state === 'over') reset(); state = 'playing'; say(''); run(); setPad(); }
+      function pause() { if (state !== 'playing') return; state = 'paused'; clearInterval(timer); say('Paused. ' + (coarse ? 'Tap ▶ to keep going.' : 'Space to keep going.')); setPad(); }
+      function setPad() { const b = box.querySelector('.hv-go'); if (b) b.innerHTML = state === 'playing' ? '&#10074;&#10074;' : '&#9654;'; }
+      function turn(d) {
+        if (state === 'over') return;
+        const last = queue.length ? queue[queue.length - 1] : dir;
+        const [ax, ay] = DIRS[last], [bx, by] = DIRS[d];
+        if (ax + bx === 0 && ay + by === 0) return; // no U-turn into your own wagons
+        if (d !== last && queue.length < 2) queue.push(d);
+        if (state !== 'playing') play();
+      }
+      function step() {
+        if (queue.length) dir = queue.shift();
+        const [dx, dy] = DIRS[dir], head = train[0];
+        const next = { x: head.x + dx, y: head.y + dy };
+        const ate = bale && next.x === bale.x && next.y === bale.y;
+        const ateBonus = bonus && next.x === bonus.x && next.y === bonus.y;
+        const body = ate || ateBonus ? train : train.slice(0, -1); // the last wagon moves out of the way
+        if (next.x < 0 || next.y < 0 || next.x >= COLS || next.y >= ROWS) return over('Into the fence!');
+        if (body.some((t) => t.x === next.x && t.y === next.y)) return over('Jackknifed into your own wagons!');
+        train.unshift(next);
+        if (ate) {
+          score++; bale = free();
+          if (score % 5 === 0) { tickMs = Math.max(65, tickMs - 12); run(); }
+        } else if (ateBonus) { score += 5; bonus = null; }
+        else train.pop();
+        ticks++;
+        if (!bonus && score >= 3 && Math.random() < 0.012) { const p = free(); if (p) bonus = { x: p.x, y: p.y, left: 45 }; }
+        if (bonus && --bonus.left <= 0) bonus = null;
+        balesEl.textContent = led(score);
+        if (!bale) return over('The whole field is harvested. Wow.');
+        draw();
+      }
+      function over(why) {
+        clearInterval(timer); state = 'over'; setPad();
+        const record = score > best;
+        if (record) { best = score; try { localStorage.setItem('s79-harvest-best', best); } catch (e) {} bestEl.textContent = led(best); }
+        draw(true);
+        say(why + ' ' + score + ' bale' + (score === 1 ? '' : 's') + (record ? ' — a new best!' : '') + (coarse ? ' Tap ▶ to plow again.' : ' Space to plow again.'));
+      }
+      function draw(crashed) {
+        // field: sage with lighter furrows
+        g.fillStyle = '#5F6E41'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(169,184,132,.35)';
+        for (let y = 0; y < ROWS; y += 2) g.fillRect(0, y * cell, W, cell);
+        const sq = (p, col, pad) => { g.fillStyle = col; g.fillRect(p.x * cell + pad, p.y * cell + pad, cell - pad * 2, cell - pad * 2); };
+        // hay bale: ochre square with twine lines
+        if (bale) {
+          sq(bale, '#D9A441', 2);
+          g.fillStyle = '#9E7020'; g.fillRect(bale.x * cell + 2, bale.y * cell + cell * 0.33, cell - 4, 1.5); g.fillRect(bale.x * cell + 2, bale.y * cell + cell * 0.63, cell - 4, 1.5);
+        }
+        // bonus "79" bale, blinking as it runs out
+        if (bonus && (bonus.left > 12 || bonus.left % 2)) {
+          sq(bonus, '#F2EBDD', 1);
+          g.fillStyle = '#9E3324'; g.font = '700 ' + Math.round(cell * 0.62) + 'px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText('79', bonus.x * cell + cell / 2, bonus.y * cell + cell / 2 + 1); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+        }
+        // wagons: ochre carts with walnut hitches; tractor: brick red with slate cab and black wheels
+        for (let i = train.length - 1; i >= 1; i--) {
+          const t = train[i];
+          sq(t, '#C08A2E', 2);
+          g.fillStyle = '#2E2620'; g.fillRect(t.x * cell + 3, t.y * cell + 3, cell - 6, 2);
+        }
+        const h = train[0], [dx, dy] = DIRS[dir];
+        sq(h, crashed ? '#E0735C' : '#9E3324', 1);
+        g.fillStyle = '#3E5C6B'; // cab, toward the back of the tractor
+        g.fillRect(h.x * cell + cell / 2 - cell * 0.18 - dx * cell * 0.15, h.y * cell + cell / 2 - cell * 0.18 - dy * cell * 0.15, cell * 0.36, cell * 0.36);
+        g.fillStyle = '#171310'; // wheels
+        const wv = cell * 0.22;
+        if (dx) { g.fillRect(h.x * cell + 2, h.y * cell, wv, 3); g.fillRect(h.x * cell + 2, h.y * cell + cell - 3, wv, 3); g.fillRect(h.x * cell + cell - 2 - wv, h.y * cell, wv, 3); g.fillRect(h.x * cell + cell - 2 - wv, h.y * cell + cell - 3, wv, 3); }
+        else { g.fillRect(h.x * cell, h.y * cell + 2, 3, wv); g.fillRect(h.x * cell + cell - 3, h.y * cell + 2, 3, wv); g.fillRect(h.x * cell, h.y * cell + cell - 2 - wv, 3, wv); g.fillRect(h.x * cell + cell - 3, h.y * cell + cell - 2 - wv, 3, wv); }
+      }
+
+      // keyboard
+      box.tabIndex = 0;
+      box.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        const map = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
+        if (map[k]) { e.preventDefault(); turn(map[k]); }
+        else if (k === ' ' || k === 'p' || k === 'enter') { e.preventDefault(); state === 'playing' ? pause() : play(); }
+        else if (k === 'f2') { e.preventDefault(); reset(); }
+      });
+      // touch: swipe on the field; tap to start/pause
+      let sx = 0, sy = 0;
+      cv.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; box.focus(); });
+      cv.addEventListener('pointerup', (e) => {
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) { if (e.pointerType !== 'mouse') state === 'playing' ? pause() : play(); return; }
+        turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+      });
+      // on-screen arrows (phones)
+      const pad = (cls, fn) => { const b = box.querySelector(cls); if (b) { b.addEventListener('pointerdown', (e) => { e.preventDefault(); fn(); }); } };
+      pad('.hv-up', () => turn('up')); pad('.hv-down', () => turn('down')); pad('.hv-left', () => turn('left')); pad('.hv-right', () => turn('right'));
+      pad('.hv-go', () => (state === 'playing' ? pause() : play()));
+
+      const win = new Win({
+        title: 'Harvest', icon: I.harvest, w: W + 34, h: H + 200, resizable: false, content: box,
+        onFocus: () => setTimeout(() => box.focus(), 0),
+        onMinimize: () => pause(),
+        onClosed: () => clearInterval(timer),
+      });
+      win.setMenu([
+        { label: 'Game', items: [
+          { label: 'New', key: 'F2', action: reset },
+          { label: 'Pause', key: 'Space', action: () => (state === 'playing' ? pause() : play()) },
+          { sep: true },
+          { label: 'Best Harvest...', action: () => msgBox({ title: 'Harvest', icon: 'harvest', text: best ? `Your best harvest: ${best} bale${best === 1 ? '' : 's'}.` : 'No harvest yet. The field is waiting.' }) },
+          { sep: true },
+          { label: 'Exit', action: () => win.close() },
+        ] },
+        { label: 'Help', items: [{ label: 'How to Play...', action: () => msgBox({ title: 'Harvest', icon: 'harvest', w: 440, text: 'Drive the tractor around the field and pick up the hay bales.\nEvery bale hooks another wagon on behind, and every 5 bales you go a little faster.\nGrab a 79 bale before it disappears for 5 bales at once.\n\nDon’t drive into the fence or your own wagons.\n\nKeyboard: arrow keys or WASD. Space or P pauses. F2 starts over.\nPhone: swipe on the field or use the arrows. Tap ▶ to start or pause.' }) }] },
+      ]);
+      requestAnimationFrame(() => {
+        const tb = win.el.querySelector('.titlebar').offsetHeight + win.el.querySelector('.menubar').offsetHeight;
+        win.el.style.width = Math.max(W + 34, 260) + 'px';
+        win.el.style.height = tb + box.scrollHeight + 14 + 'px';
+        const r = win.el.getBoundingClientRect(), D = win.container;
+        if (r.right > D.clientWidth) win.el.style.left = Math.max(0, D.clientWidth - r.width) + 'px';
+        if (r.bottom > D.clientHeight) win.el.style.top = Math.max(0, D.clientHeight - r.height) + 'px';
+      });
+      reset();
+      setTimeout(() => box.focus(), 0);
+      return win;
     },
   };
 
