@@ -32,7 +32,10 @@
       ic.parentElement.querySelectorAll('.icon.selected').forEach((x) => x.classList.remove('selected'));
       ic.classList.add('selected');
     });
-    ic.addEventListener('dblclick', run);
+    // Mouse: double-click opens. Touch: a single tap opens (phones have no double-click).
+    let tappedAt = 0;
+    ic.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') { tappedAt = Date.now(); run(); } });
+    ic.addEventListener('dblclick', () => { if (Date.now() - tappedAt > 700) run(); });
     ic.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
     return ic;
   }
@@ -46,7 +49,7 @@
       const win = new Win({
         title: 'Quest Manager', icon: I.questmgr, x: 30, y: 24, w: Math.min(760, innerWidth - 80), h: Math.min(440, innerHeight - 100), content: mdi,
         onClose: () => S79.exitGUI(),
-        onResize: () => groups.forEach((g) => g.fit()),
+        onResize: () => { groups.forEach((g) => g.fit()); if (WM.isSmall() && groups.length) arrange('tile'); },
       });
       const tray = mdi.querySelector('.tray');
       const fillGroup = (g, field) => {
@@ -71,20 +74,24 @@
         groups.push(gw);
       }
       groups[0].focus();
-      const arrange = (mode) => {
+      function arrange(mode) {
         const open = groups.filter((g) => g.state !== 'min');
         const W = mdi.clientWidth, H = mdi.clientHeight - (tray.children.length ? 80 : 0);
+        if (!W || !H) return;
         open.forEach((g, i) => {
           if (g.state === 'max') g.restore();
           if (mode === 'cascade') Object.assign(g.el.style, { left: 10 + i * 24 + 'px', top: 10 + i * 24 + 'px', width: Math.max(220, W * 0.6) + 'px', height: Math.max(140, H * 0.6) + 'px' });
           else {
-            const cols = Math.ceil(Math.sqrt(open.length)), rows = Math.ceil(open.length / cols);
+            // Narrow screens stack the groups top to bottom; wide ones tile in a grid.
+            const cols = W < 600 ? 1 : Math.ceil(Math.sqrt(open.length)), rows = Math.ceil(open.length / cols);
             const cw = W / cols, rh = H / rows;
             Object.assign(g.el.style, { left: (i % cols) * cw + 'px', top: Math.floor(i / cols) * rh + 'px', width: cw + 'px', height: rh + 'px' });
           }
           g.focus();
         });
-      };
+      }
+      // Phones: Quest Manager opens maximized (window manager), so stack its groups to fit.
+      if (WM.isSmall()) requestAnimationFrame(() => arrange('tile'));
       win.setMenu([
         { label: 'File', items: [
           { label: 'Open', key: 'Enter', action: () => { const s = mdi.querySelector('.win.active .icon.selected'); if (s) s.dispatchEvent(new MouseEvent('dblclick')); } },
@@ -99,7 +106,7 @@
           { label: 'Prairie dark theme', checked: S79.settings.theme === 'dark', action: () => S79.set('theme', 'dark') },
           { sep: true },
           { label: 'Startup chime', checked: S79.settings.chime, action: () => S79.set('chime', !S79.settings.chime) },
-          { label: 'Full screen', key: 'F11', action: () => S79.fullscreen() },
+          document.fullscreenEnabled ? { label: 'Full screen', key: 'F11', action: () => S79.fullscreen() } : null, // iPhone Safari has no full screen
         ] },
         { label: 'Window', items: () => [
           { label: 'Cascade', key: 'Shift+F5', action: () => arrange('cascade') },
@@ -606,8 +613,25 @@
           const el = document.createElement('div');
           el.className = 'cell';
           const c = { x, y, el, g: false, open: false, flag: false, n: 0 };
-          el.addEventListener('pointerdown', (e) => { if (!over && e.button === 0 && !c.open && !c.flag) face.innerHTML = FACE.wow; });
-          el.addEventListener('pointerup', (e) => { if (over) return; face.innerHTML = FACE.ok; if (e.button === 0) reveal(c); else if (e.button === 2) flag(c); });
+          // Touch: a long press plants a flag (no right-click on phones); tapping a number clears around it.
+          let press = null, longPressed = false;
+          el.addEventListener('pointerdown', (e) => {
+            if (!over && e.button === 0 && !c.open && !c.flag) face.innerHTML = FACE.wow;
+            if (e.pointerType === 'touch' && !over && !c.open) {
+              longPressed = false;
+              press = setTimeout(() => { longPressed = true; face.innerHTML = FACE.ok; flag(c); if (navigator.vibrate) navigator.vibrate(15); }, 420);
+            }
+          });
+          const cancelPress = () => { clearTimeout(press); press = null; };
+          el.addEventListener('pointercancel', cancelPress);
+          el.addEventListener('pointerleave', cancelPress);
+          el.addEventListener('pointerup', (e) => {
+            cancelPress();
+            if (over) return;
+            face.innerHTML = FACE.ok;
+            if (e.pointerType === 'touch') { if (longPressed) { longPressed = false; return; } if (c.open) { chord(c); return; } reveal(c); return; }
+            if (e.button === 0) reveal(c); else if (e.button === 2) flag(c);
+          });
           el.addEventListener('dblclick', () => chord(c));
           el.addEventListener('contextmenu', (e) => e.preventDefault());
           cells.push(c); board.appendChild(el);
@@ -727,6 +751,7 @@
         S79.refresh();
       };
       box.querySelector('.fs').onclick = () => S79.fullscreen();
+      if (!document.fullscreenEnabled) box.querySelector('.fs').remove(); // iPhone Safari has no full screen
       const win = new Win({ title: 'Control Panel', icon: I.control, w: 470, h: 520, resizable: false, content: box });
       box.querySelector('.ok').onclick = () => win.close();
       requestAnimationFrame(() => { win.el.style.height = win.el.querySelector('.titlebar').offsetHeight + box.scrollHeight + 14 + 'px'; });

@@ -64,6 +64,8 @@
       this.alive = true;
       this.el.classList.add('term');
       this.el.addEventListener('mouseup', () => { if (!getSelection().toString()) this.focusInput(); });
+      // iPhone: the keyboard only opens when focus happens inside a tap, so focus on the tap itself too.
+      this.el.addEventListener('click', () => { if (!getSelection().toString()) this.focusInput(); });
       this.setColor(localStorage.getItem('s79-dos-color') || 'walnut', true);
     }
 
@@ -570,6 +572,10 @@
     let skip = false;
     const f8 = (e) => { if (e.key === 'F8') { skip = true; e.preventDefault(); } };
     addEventListener('keydown', f8);
+    // Phones have no F8: a tap during the boot screen does the same.
+    const touch = matchMedia('(pointer: coarse)').matches;
+    const tapSkip = (e) => { if (e.pointerType === 'touch') skip = true; };
+    addEventListener('pointerdown', tapSkip);
     T.print('<span class="hi">spreck79 Prairie BIOS</span> v3.1   (C) 1979-2026 spreck79');
     T.out('Low roofline chipset, horizontal bus, earth-tone video', 'dim');
     T.print('');
@@ -587,9 +593,10 @@
     T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79-DOS 3.1</span>');
     T.print('');
     T.out('Starting S79-DOS...');
-    T.out('Press F8 to skip AUTOEXEC.BAT', 'dim');
-    await sleep(1100);
+    T.out(touch ? 'Tap to skip AUTOEXEC.BAT' : 'Press F8 to skip AUTOEXEC.BAT', 'dim');
+    await sleep(touch ? 1800 : 1100);
     removeEventListener('keydown', f8);
+    removeEventListener('pointerdown', tapSkip);
     T.print('');
     if (skip) {
       T.out('S79-DOS is bypassing your AUTOEXEC.BAT file.', 'hi');

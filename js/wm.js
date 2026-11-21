@@ -59,6 +59,22 @@
     if (openMenu.anchor && openMenu.anchor.contains(e.target)) return;
     closeMenus();
   }, true);
+
+  // ---------------- touch screens (iPhone and friends) ----------------
+  // Phones can't double-click: tapping a list item that's already selected opens it.
+  const isSmall = () => innerWidth < 700 || innerHeight < 480;
+  let tapSel = null;
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') return;
+    const li = e.target.closest && e.target.closest('.listbox .li');
+    tapSel = li && li.classList.contains('sel') ? li : null;
+  }, true);
+  document.addEventListener('pointerup', (e) => {
+    if (e.pointerType !== 'touch' || !tapSel) return;
+    const li = e.target.closest && e.target.closest('.listbox .li');
+    if (li === tapSel) li.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    tapSel = null;
+  }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openMenu) { closeMenus(); e.stopPropagation(); } }, true);
 
   function buildMenubar(win, menus) {
@@ -159,6 +175,8 @@
 
       if (o.content) this.client.appendChild(o.content);
       this.focus();
+      // On a phone-sized screen, resizable program windows open maximized.
+      if (o.maximized == null && isSmall() && !o.dialog && !this.owner && o.resizable !== false && o.maximizable !== false) o.maximized = true;
       if (o.maximized) this.maximize();
     }
 
@@ -236,6 +254,7 @@
       ic.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.restore(); });
       ic.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
+        if (e.pointerType === 'touch') { setTimeout(() => this.restore(), 0); return; } // a tap brings it back
         if (e.button === 0) {
           const r = ic.getBoundingClientRect();
           setTimeout(() => { if (this.state === 'min') showMenu(this.sysMenu(), r.left, r.top - 4 - 140 > 0 ? r.top - 140 : r.bottom); }, 0);
@@ -443,5 +462,5 @@
     });
   }
 
-  window.WM = { Win, msgBox, promptBox, fileDialog, modal, showMenu, closeMenus, all, $, esc, topZ: () => ++z };
+  window.WM = { Win, msgBox, promptBox, fileDialog, modal, showMenu, closeMenus, all, $, esc, isSmall, topZ: () => ++z };
 })();

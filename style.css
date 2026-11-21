@@ -409,6 +409,7 @@ body.dragging iframe { pointer-events: none; }
 #crash .cr-title span { background: #E4D8C1; color: #0018A8; padding: 0 10px; font-weight: 700; }
 #crash p { margin: 0 0 22px; }
 #crash .cr-count { text-align: center; margin-top: 8px; }
+#crash .cr-li { display: block; padding-left: 2ch; text-indent: -2ch; }
 #crash .cr-cursor { animation: cr-blink 1s steps(1) infinite; }
 @keyframes cr-blink { 50% { opacity: 0; } }
 
@@ -430,3 +431,45 @@ body.dragging iframe { pointer-events: none; }
 #splash .bar { width: 360px; height: 12px; border: 1px solid #2E2620; padding: 2px; }
 #splash .bar i { display: block; height: 100%; width: 0; background: #9E3324; transition: width .15s linear; }
 #splash .copy { font-size: 12px; color: #5E5245; }
+
+/* ---------- touch screens and phones (iPhone friendly) ---------- */
+html, body {
+  touch-action: manipulation;          /* no double-tap zoom */
+  -webkit-text-size-adjust: 100%;      /* iPhone: don't inflate text in landscape */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;         /* no copy/lookup popup on long press */
+}
+/* Dragging title bars, resize corners, drawing and the gopher field must not scroll the page. */
+.titlebar, .grip, .sketch canvas, .gopher .board { touch-action: none; }
+.term, .jotter, input, textarea { -webkit-touch-callout: default; }
+
+@media (pointer: coarse) {
+  /* Bigger targets for fingers. */
+  .titlebar { height: 32px; }
+  .titlebar .ctl { width: 34px; }
+  .titlebar .ctl svg { width: 12px; height: 12px; }
+  .titlebar .title { font-size: 14px; }
+  .menubar { height: 30px; }
+  .menubar > .mi { padding: 5px 12px; }
+  .menu .it { padding: 9px 22px 9px 26px; }
+  .listbox .li { padding: 7px 8px; }
+  .btn { height: 36px; }
+  .field { height: 34px; }
+  .grip.n, .grip.s { height: 12px; }
+  .grip.e, .grip.w { width: 12px; }
+  .grip.ne, .grip.nw, .grip.se, .grip.sw { width: 26px; height: 26px; }
+  .gopher .cell { width: 30px; height: 30px; }
+  .sketch .tools button { height: 30px; }
+  .palette .sw { width: 26px; height: 26px; }
+}
+
+@media (max-width: 600px) {
+  /* S79-DOS text mode: shrink so a 47-character line fits a phone. */
+  #dos-screen { font-size: clamp(11px, 3.1vw, 18px); line-height: 1.4; padding: 12px 10px; }
+  .dos-edit { font-size: 14px; line-height: 20px; }
+  .tally .keys .btn { height: 40px; }
+  #crash { font-size: 15px; line-height: 22px; }
+  #crash .cr-box br { display: none; }
+  .cpl .swatches { gap: 26px 6px; }
+  .cpl .wp { width: 64px; }
+}
