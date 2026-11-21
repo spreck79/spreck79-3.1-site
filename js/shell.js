@@ -2,6 +2,8 @@
 (function () {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const SKEY = 's79-settings-v1';
+  // True when another page shows this one in a frame (the card on spreck79.com).
+  const FRAMED = window.top !== window;
   const defaults = { theme: 'prairie', wallpaper: 'grid', saver: 3, chime: true };
   let settings;
   try { settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem(SKEY) || '{}')); } catch (e) { settings = Object.assign({}, defaults); }
@@ -144,7 +146,12 @@
     },
 
     // ---------- session ----------
+    // Where booting from inside another site's frame sends the whole tab.
+    desktopURL: 'https://os.spreck79.com/?desktop',
+
     startGUI() {
+      // Shown in a frame (the card on spreck79.com): boot in the full tab instead of the little frame.
+      if (FRAMED) { S79.bootInTab(); return Promise.resolve(); }
       return new Promise(async (resolve) => {
         S79._exitGUI = resolve;
         const splash = document.getElementById('splash');
@@ -162,6 +169,16 @@
         S79.launch('questmgr');
         saver.reset();
       });
+    },
+
+    bootInTab() {
+      try {
+        window.top.location.href = S79.desktopURL;
+      } catch (e) {
+        // The page around this frame doesn't allow it: open the desktop in a new tab instead.
+        const w = window.open(S79.desktopURL, '_blank', 'noopener');
+        if (!w && S79.term) S79.term.out('Open os.spreck79.com to boot spreck79 3.1.', 'dim');
+      }
     },
 
     async exitGUI() {
@@ -283,10 +300,18 @@
   addEventListener('keydown', (e) => { if (e.key === 'F11' && !S79.guiRunning) { e.preventDefault(); S79.fullscreen(); } });
 
   // ---------- go ----------
+  // ?desktop skips S79-DOS; ?dos boots and stays at the prompt (used by the card on spreck79.com).
+  const params = new URLSearchParams(location.search);
+  const bootMode = params.has('desktop') ? 'desktop' : params.has('dos') ? 'dos' : 'normal';
+
   addEventListener('DOMContentLoaded', () => {
     apply();
     const term = new S79DOS.Terminal(document.getElementById('dos-term'), { mode: 'boot' });
     S79.term = term;
-    S79DOS.boot(term);
+    S79DOS.boot(term, {
+      mode: bootMode,
+      // In a frame, tell spreck79.com the real prompt is up so it can swap out its stand-in terminal.
+      onPrompt: () => { if (FRAMED) try { parent.postMessage('s79dos:ready', 'https://spreck79.com'); } catch (e) {} },
+    });
   });
 })();

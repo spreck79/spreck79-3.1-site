@@ -390,6 +390,7 @@
         case 'S79': case 'WIN':
           if (cmd === 'WIN') { T.out('Bad command or file name. (Did you mean S79?)', 'err'); return; }
           if (T.mode === 'window') { T.out('spreck79 3.1 is already running.', 'dim'); return; }
+          if (inBatch && T.stayInDos) return; // ?dos: AUTOEXEC.BAT doesn't start the desktop
           await S79.startGUI();
           return;
         case 'EDIT': case 'S79EDIT':
@@ -413,7 +414,7 @@
           S79.launch(node.app, file && FS.isFile(file) ? { file } : {});
           return;
         }
-        if (node.app === 'questmgr') { await S79.startGUI(); return; }
+        if (node.app === 'questmgr') { if (inBatch && T.stayInDos) return; await S79.startGUI(); return; }
         if (node.app) { T.out('This program requires spreck79 3.1. Type S79 to start it.', 'err'); return; }
         T.out('Cannot run that file.', 'err');
         return;
@@ -567,8 +568,14 @@
   }
 
   // ---------------- boot ----------------
-  async function boot(term) {
+  // opts.mode: 'normal', 'dos' (?dos: boot and stay at the prompt) or 'desktop' (?desktop: skip S79-DOS).
+  async function boot(term, opts = {}) {
     const T = term;
+    if (opts.mode === 'desktop') {
+      await S79.startGUI();
+      T.run(); // after leaving the desktop, the S79-DOS prompt is waiting
+      return;
+    }
     let skip = false;
     const f8 = (e) => { if (e.key === 'F8') { skip = true; e.preventDefault(); } };
     addEventListener('keydown', f8);
@@ -602,9 +609,12 @@
       T.out('S79-DOS is bypassing your AUTOEXEC.BAT file.', 'hi');
       T.print('');
     } else if (FS.isFile('C:\\AUTOEXEC.BAT')) {
+      T.stayInDos = opts.mode === 'dos';
       await T.runBatch('C:\\AUTOEXEC.BAT');
+      T.stayInDos = false;
     }
-    T.run();
+    T.run(); // the prompt is on screen as soon as this returns
+    if (opts.onPrompt) opts.onPrompt();
   }
 
   window.S79DOS = { Terminal, boot, SIDE_QUESTS };
