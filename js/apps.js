@@ -771,7 +771,7 @@
           <h1>spreck79 3.1</h1>
           <p>All side quests. No main story.</p>
           <div class="stripes" style="width:100%;margin:6px 0"><i></i><i></i><i></i></div>
-          <p style="font-size:13px">Running on S79-DOS 3.1 in Prairie mode<br>Drive C: ${(FS.capacity - used).toLocaleString('en-US')} bytes free<br>Side quests in progress: too many</p>
+          <p style="font-size:13px">Running on S79-DOS 5.0 in Prairie mode<br>Drive C: ${(FS.capacity - used).toLocaleString('en-US')} bytes free<br>Side quests in progress: too many</p>
           <p style="font-size:12px">spreck79.com · (C) 1979-2026 spreck79</p>
         </div>`));
         const bb = $('<div class="dlg-btns"><button class="btn default">OK</button></div>');
@@ -852,7 +852,7 @@
       const termEl = box.firstChild;
       const win = new Win({ title: 'S79-DOS Prompt', icon: I.prompt, w: 660, h: 400, content: box, onClosed: () => { term.alive = false; }, onFocus: () => setTimeout(() => term.focusInput(), 0) });
       const term = new S79DOS.Terminal(termEl, { mode: 'window', win });
-      term.out('S79-DOS 3.1 prompt. Type HELP for commands, EXIT to close.', 'dim');
+      term.out('S79-DOS 5.0 prompt. Type HELP for commands, EXIT to close.', 'dim');
       term.print('');
       (async () => {
         if (opts.run) { term.out(term.promptText() + opts.run); await term.exec(opts.run); }

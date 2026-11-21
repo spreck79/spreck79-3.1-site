@@ -99,7 +99,7 @@
           case 'Q': return '=';
           case 'D': return d.toLocaleDateString('en-US');
           case 'T': return d.toLocaleTimeString('en-US');
-          case 'V': return 'S79-DOS 3.1';
+          case 'V': return 'S79-DOS 5.0';
           case 'N': return 'C';
           case '$': return '$';
           case '_': return '\n';
@@ -248,7 +248,7 @@
 
       switch (cmd) {
         case 'HELP': case '/?': case '?':
-          T.out('S79-DOS 3.1 commands', 'hi');
+          T.out('S79-DOS 5.0 commands', 'hi');
           T.print('');
           for (const [c, d] of HELP) T.print(`<span class="och">${esc(pad(c, 9))}</span>${esc(d)}`);
           T.print('');
@@ -257,7 +257,7 @@
         case 'CLS': T.clear(); return;
         case 'VER':
           T.print('');
-          T.print('<span class="hi">S79-DOS Version 3.1</span>   (C) 1979-2026 spreck79');
+          T.print('<span class="hi">S79-DOS Version 5.0</span>   (C) 1979-2026 spreck79');
           T.out('All side quests. No main story.', 'dim');
           T.print('');
           return;
@@ -498,7 +498,7 @@
         const host = this.el.parentElement;
         const ed = document.createElement('div');
         ed.className = 'dos-edit';
-        ed.innerHTML = `<div class="bar"></div><textarea spellcheck="false"></textarea><div class="bar"><b>F2</b>=Save  <b>Esc</b>=Exit  <b>F3</b>=Save As   S79EDIT 3.1</div>`;
+        ed.innerHTML = `<div class="bar"></div><textarea spellcheck="false"></textarea><div class="bar"><b>F2</b>=Save  <b>Esc</b>=Exit  <b>F3</b>=Save As   S79EDIT 5.0</div>`;
         const top = ed.querySelector('.bar'), ta = ed.querySelector('textarea');
         let dirty = false;
         const setTop = (msg) => { top.textContent = '  S79EDIT  \u2502  ' + (path || 'UNTITLED') + (dirty ? ' *' : '') + (msg ? '   \u2502  ' + msg : ''); };
@@ -597,7 +597,7 @@
     T.print('');
     T.print('<span class="red">' + '\u2588'.repeat(34) + '</span>');
     T.print('<span class="och">' + '\u2584'.repeat(34) + '</span>');
-    T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79-DOS 3.1</span>');
+    T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79-DOS 5.0</span>');
     T.print('');
     T.out('Starting S79-DOS...');
     T.out(touch ? 'Tap to skip AUTOEXEC.BAT' : 'Press F8 to skip AUTOEXEC.BAT', 'dim');
