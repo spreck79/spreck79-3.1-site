@@ -1,4 +1,4 @@
-/* Spreck79 3.1 — built on the spreck79 design system (Prairie + Prairie dark) */
+/* spreck79 3.1 — built on the spreck79 design system (Prairie + Prairie dark) */
 :root {
   --surface: #F2EBDD;
   --surface-alt: #E4D8C1;
@@ -30,7 +30,7 @@
   --radius-sm: 2px;
   --radius-md: 8px;
 
-  /* S79DOS text mode */
+  /* S79-DOS text mode */
   --dos-bg: #171310;
   --dos-fg: #E4D8C1;
   --dos-hi: #D9A441;
@@ -68,7 +68,7 @@ html, body {
 }
 button, input, textarea, select { font: inherit; color: inherit; }
 
-/* ---------- S79DOS full screen ---------- */
+/* ---------- S79-DOS full screen ---------- */
 #dos-screen {
   position: fixed; inset: 0;
   background: var(--dos-bg); color: var(--dos-fg);
@@ -153,6 +153,10 @@ button, input, textarea, select { font: inherit; color: inherit; }
   position: absolute; right: 36px; bottom: 30px; width: 220px; opacity: .9; pointer-events: none;
 }
 #desktop:not(.wp-stripes) .wp-logo { display: none; }
+
+/* Pick the logo for the current theme: the color logo on Prairie, the white one on Prairie dark. */
+:root[data-theme="dark"] .logo-light,
+:root:not([data-theme="dark"]) .logo-dark { display: none !important; }
 
 #icon-tray { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; flex-wrap: wrap-reverse; gap: 4px; pointer-events: none; }
 #icon-tray > * { pointer-events: auto; }

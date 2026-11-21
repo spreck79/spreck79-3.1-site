@@ -1,4 +1,4 @@
-// The programs that ship with Spreck79 3.1.
+// The programs that ship with spreck79 3.1.
 (function () {
   const { Win, msgBox, promptBox, fileDialog, $, esc } = WM;
   const FS = S79FS, I = S79Icons;
@@ -12,7 +12,7 @@
     { id: 'log', title: 'Quest Log', x: 264, y: 214, w: 360, h: 150, dynamic: 'C:\\QUESTS', min: true },
   ];
   const ITEM = {
-    prompt: { label: 'S79DOS Prompt', icon: 'prompt', run: () => S79.launch('prompt') },
+    prompt: { label: 'S79-DOS Prompt', icon: 'prompt', run: () => S79.launch('prompt') },
     cabinet: { label: 'File Cabinet', icon: 'cabinet', run: () => S79.launch('cabinet') },
     control: { label: 'Control Panel', icon: 'control', run: () => S79.launch('control') },
     readme: { label: 'Read Me', icon: 'file', run: () => S79.launch('jotter', { file: 'C:\\README.TXT' }) },
@@ -91,7 +91,7 @@
           { sep: true },
           { label: 'Run...', action: () => S79.runDialog() },
           { sep: true },
-          { label: 'Exit Spreck79...', action: () => win.close() },
+          { label: 'Exit spreck79...', action: () => win.close() },
         ] },
         { label: 'Options', items: () => [
           { label: 'Prairie theme', checked: S79.settings.theme === 'prairie', action: () => S79.set('theme', 'prairie') },
@@ -109,9 +109,9 @@
         ] },
         { label: 'Help', items: [
           { label: 'Read Me', action: () => S79.launch('jotter', { file: 'C:\\README.TXT' }) },
-          { label: 'S79DOS Commands', action: () => S79.launch('prompt', { run: 'HELP' }) },
+          { label: 'S79-DOS Commands', action: () => S79.launch('prompt', { run: 'HELP' }) },
           { sep: true },
-          { label: 'About Spreck79 3.1...', action: () => S79.launch('about') },
+          { label: 'About spreck79 3.1...', action: () => S79.launch('about') },
         ] },
       ]);
       win.groups = groups;
@@ -296,7 +296,7 @@
           { label: 'Up One Level', key: 'Bksp', action: () => { cwd = FS.resolve(cwd, '..'); render(); } },
           { label: 'Refresh', action: render },
         ] },
-        { label: 'Help', items: [{ label: 'About File Cabinet...', action: () => msgBox({ title: 'File Cabinet', icon: 'cabinet', text: 'File Cabinet 3.1\nEverything on drive C:, filed neatly.\nThe same disk S79DOS uses.' }) }] },
+        { label: 'Help', items: [{ label: 'About File Cabinet...', action: () => msgBox({ title: 'File Cabinet', icon: 'cabinet', text: 'File Cabinet 3.1\nEverything on drive C:, filed neatly.\nThe same disk S79-DOS uses.' }) }] },
       ]);
       win.refresh = render;
       render();
@@ -737,18 +737,17 @@
   A.about = {
     title: 'About', icon: 'about',
     open() {
-      const dark = S79.settings.theme === 'dark';
-      return WM.modal({ title: 'About Spreck79 3.1', w: 400 }, (c, finish) => {
+      return WM.modal({ title: 'About spreck79 3.1', w: 400 }, (c, finish) => {
         const used = FS.used();
+        // Both logos are in the page; the theme's CSS shows the right one, even after a theme switch.
         c.appendChild($(`<div class="about">
-          <img src="assets/${dark ? 'logo-white' : 'logo'}.svg" alt="spreck79">
-          <h1>Spreck79 3.1</h1>
+          <img class="logo-light" src="assets/logo.svg" alt="spreck79"><img class="logo-dark" src="assets/logo-white.svg" alt="spreck79">
+          <h1>spreck79 3.1</h1>
           <p>All side quests. No main story.</p>
           <div class="stripes" style="width:100%;margin:6px 0"><i></i><i></i><i></i></div>
-          <p style="font-size:13px">Running on S79DOS 3.1 in Prairie mode<br>Drive C: ${(FS.capacity - used).toLocaleString('en-US')} bytes free<br>Side quests in progress: too many</p>
+          <p style="font-size:13px">Running on S79-DOS 3.1 in Prairie mode<br>Drive C: ${(FS.capacity - used).toLocaleString('en-US')} bytes free<br>Side quests in progress: too many</p>
           <p style="font-size:12px">spreck79.com · (C) 1979-2026 spreck79</p>
         </div>`));
-        if (dark) c.querySelector('img').src = 'assets/logo-white.svg';
         const bb = $('<div class="dlg-btns"><button class="btn default">OK</button></div>');
         bb.firstChild.onclick = () => finish();
         c.appendChild(bb);
@@ -756,15 +755,15 @@
     },
   };
 
-  // ======================= S79DOS Prompt (windowed) =======================
+  // ======================= S79-DOS Prompt (windowed) =======================
   A.prompt = {
-    title: 'S79DOS Prompt', icon: 'prompt',
+    title: 'S79-DOS Prompt', icon: 'prompt',
     open(opts = {}) {
       const box = $('<div style="flex:1;min-height:0;background:var(--dos-bg);padding:6px 10px;font:15px/20px var(--mono);color:var(--dos-fg);position:relative;display:flex"><div style="flex:1"></div></div>');
       const termEl = box.firstChild;
-      const win = new Win({ title: 'S79DOS Prompt', icon: I.prompt, w: 660, h: 400, content: box, onClosed: () => { term.alive = false; }, onFocus: () => setTimeout(() => term.focusInput(), 0) });
+      const win = new Win({ title: 'S79-DOS Prompt', icon: I.prompt, w: 660, h: 400, content: box, onClosed: () => { term.alive = false; }, onFocus: () => setTimeout(() => term.focusInput(), 0) });
       const term = new S79DOS.Terminal(termEl, { mode: 'window', win });
-      term.out('S79DOS 3.1 prompt. Type HELP for commands, EXIT to close.', 'dim');
+      term.out('S79-DOS 3.1 prompt. Type HELP for commands, EXIT to close.', 'dim');
       term.print('');
       (async () => {
         if (opts.run) { term.out(term.promptText() + opts.run); await term.exec(opts.run); }

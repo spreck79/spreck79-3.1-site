@@ -1,4 +1,4 @@
-// Spreck79 3.1 window manager: overlapping windows, MDI groups, menus, dialogs.
+// spreck79 3.1 window manager: overlapping windows, MDI groups, menus, dialogs.
 (function () {
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -342,7 +342,7 @@
   function msgBox(o) {
     if (typeof o === 'string') o = { text: o };
     const buttons = o.buttons || ['OK'];
-    return modal({ title: o.title || 'Spreck79', w: o.w || 420, cancelValue: buttons.includes('Cancel') ? 'Cancel' : buttons[buttons.length - 1] }, (c, finish) => {
+    return modal({ title: o.title || 'spreck79', w: o.w || 420, cancelValue: buttons.includes('Cancel') ? 'Cancel' : buttons[buttons.length - 1] }, (c, finish) => {
       const icon = S79Icons[o.icon || 'info'];
       c.appendChild($(`<div class="dlg-body"><span class="dlg-glyph">${icon}</span><div class="msg"></div></div>`));
       c.querySelector('.msg').textContent = o.text;
@@ -357,7 +357,7 @@
   }
 
   function promptBox(o) {
-    return modal({ title: o.title || 'Spreck79', w: o.w || 400 }, (c, finish) => {
+    return modal({ title: o.title || 'spreck79', w: o.w || 400 }, (c, finish) => {
       c.appendChild($(`<div class="col" style="padding:16px 18px 6px;"><label class="label-caps"></label><input class="field" autofocus spellcheck="false"></div>`));
       c.querySelector('label').textContent = o.label || '';
       const inp = c.querySelector('input'); inp.value = o.value || '';
@@ -423,7 +423,7 @@
           if (ext && !/\./.test(n)) { n += '.' + ext; }
           const p2 = FS.resolve(cwd, n);
           const nm = FS.parentOf(p2).name;
-          if (!FS.validName(nm)) { await msgBox({ title: 'Save As', icon: 'warn', text: nm + '\nis not a valid S79DOS file name.\nUse up to 8 letters, a dot, and up to 3 more.' }); return; }
+          if (!FS.validName(nm)) { await msgBox({ title: 'Save As', icon: 'warn', text: nm + '\nis not a valid S79-DOS file name.\nUse up to 8 letters, a dot, and up to 3 more.' }); return; }
           if (FS.exists(p2)) {
             const a = await msgBox({ title: 'Save As', icon: 'question', text: p2 + ' already exists.\nReplace it?', buttons: ['Yes', 'No'] });
             if (a !== 'Yes') return;

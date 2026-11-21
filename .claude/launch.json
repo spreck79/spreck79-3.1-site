@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spreck79-site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/serve.js", "7932"],
+      "port": 7932
+    }
+  ]
+}

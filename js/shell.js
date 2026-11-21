@@ -1,4 +1,4 @@
-// Spreck79 3.1 shell: boot, desktop session, settings, launching, task list, screen saver.
+// spreck79 3.1 shell: boot, desktop session, settings, launching, task list, screen saver.
 (function () {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const SKEY = 's79-settings-v1';
@@ -19,11 +19,11 @@
       if (k === 'saver') saver.reset();
     },
 
-    fullscreen() { if (window.host) host.fullscreen(); else if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); },
+    fullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); },
 
     launch(id, opts) {
       const app = S79Apps[id];
-      if (!app) return WM.msgBox({ title: 'Spreck79', icon: 'stop', text: 'Cannot find that program.' });
+      if (!app) return WM.msgBox({ title: 'spreck79', icon: 'stop', text: 'Cannot find that program.' });
       if (id === 'dos') return S79.launch('prompt');
       if (id === 'edit') return S79.launch('jotter', opts);
       if (app.single) {
@@ -43,7 +43,7 @@
       if (node.app) return S79.launch(node.app);
       if (/\.PIC$/.test(p)) return S79.launch('sketch', { file: p });
       if (/\.BAT$/.test(p)) return S79.launch('prompt', { batch: p });
-      if (/\.(SYS|DRV|FON)$/.test(p) && !node.content) return WM.msgBox({ title: 'Spreck79', icon: 'info', text: FS.parentOf(p).name + ' is a system file.\nIt keeps the prairie running. Best left alone.' });
+      if (/\.(SYS|DRV|FON)$/.test(p) && !node.content) return WM.msgBox({ title: 'spreck79', icon: 'info', text: FS.parentOf(p).name + ' is a system file.\nIt keeps the prairie running. Best left alone.' });
       return S79.launch('jotter', { file: p });
     },
 
@@ -138,7 +138,7 @@
     },
 
     async exitGUI() {
-      const a = await WM.msgBox({ title: 'Exit Spreck79', icon: 'question', text: 'This will end your Spreck79 session\nand return you to S79DOS.', buttons: ['OK', 'Cancel'] });
+      const a = await WM.msgBox({ title: 'Exit spreck79', icon: 'question', text: 'This will end your spreck79 session\nand return you to S79-DOS.', buttons: ['OK', 'Cancel'] });
       if (a !== 'OK') return false;
       for (const w of [...WM.all]) if (w !== S79.questmgr && !w.owner) { const ok = await w.close(); if (ok === false) return false; }
       S79.guiRunning = false;
@@ -163,8 +163,7 @@
       T.print('');
       T.print('<span class="hi">It is now safe to switch off. See you on the next side quest.</span>');
       await sleep(1400);
-      if (window.host) host.quit();
-      else { T.out('(Close this tab, or type REBOOT.)', 'dim'); }
+      T.out('(Close this tab, or type REBOOT.)', 'dim');
     },
   });
 
@@ -172,8 +171,6 @@
     document.documentElement.dataset.theme = settings.theme === 'dark' ? 'dark' : 'prairie';
     const d = document.getElementById('desktop');
     d.className = d.className.replace(/\bwp-\S+/g, '').trim() + ' wp-' + settings.wallpaper;
-    const logo = d.querySelector('.wp-logo');
-    if (logo) logo.src = 'assets/' + (settings.theme === 'dark' ? 'logo-white' : 'logo') + '.svg';
   }
 
   function chime() {

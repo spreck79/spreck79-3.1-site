@@ -1,4 +1,4 @@
-// S79DOS — the command line under Spreck79 3.1.
+// S79-DOS — the command line under spreck79 3.1.
 (function () {
   const FS = window.S79FS;
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -34,7 +34,7 @@
     ['DIR', 'List files  (DIR /W for wide)'],
     ['ECHO', 'Print a message, or ECHO ON/OFF'],
     ['EDIT', 'Edit a text file with S79EDIT'],
-    ['EXIT', 'Leave S79DOS'],
+    ['EXIT', 'Leave S79-DOS'],
     ['FORMAT', 'Wipe drive C: back to factory side quests'],
     ['HELP', 'This list'],
     ['MD', 'Make a directory (also MKDIR)'],
@@ -44,11 +44,11 @@
     ['RD', 'Remove an empty directory (also RMDIR)'],
     ['REBOOT', 'Restart the computer'],
     ['REN', 'Rename a file:  REN old new'],
-    ['S79', 'Start the Spreck79 3.1 desktop'],
+    ['S79', 'Start the spreck79 3.1 desktop'],
     ['TIME', 'Show the time'],
     ['TREE', 'Show the directory tree'],
     ['TYPE', 'Show the contents of a text file'],
-    ['VER', 'Show the S79DOS version'],
+    ['VER', 'Show the S79-DOS version'],
     ['VOL', 'Show the disk label'],
   ];
 
@@ -97,7 +97,7 @@
           case 'Q': return '=';
           case 'D': return d.toLocaleDateString('en-US');
           case 'T': return d.toLocaleTimeString('en-US');
-          case 'V': return 'S79DOS 3.1';
+          case 'V': return 'S79-DOS 3.1';
           case 'N': return 'C';
           case '$': return '$';
           case '_': return '\n';
@@ -246,7 +246,7 @@
 
       switch (cmd) {
         case 'HELP': case '/?': case '?':
-          T.out('S79DOS 3.1 commands', 'hi');
+          T.out('S79-DOS 3.1 commands', 'hi');
           T.print('');
           for (const [c, d] of HELP) T.print(`<span class="och">${esc(pad(c, 9))}</span>${esc(d)}`);
           T.print('');
@@ -255,7 +255,7 @@
         case 'CLS': T.clear(); return;
         case 'VER':
           T.print('');
-          T.print('<span class="hi">S79DOS Version 3.1</span>   (C) 1979-2026 spreck79');
+          T.print('<span class="hi">S79-DOS Version 3.1</span>   (C) 1979-2026 spreck79');
           T.out('All side quests. No main story.', 'dim');
           T.print('');
           return;
@@ -359,7 +359,7 @@
           T.out('Snack reserve        1024K       512K       512K');
           T.out('Drive C:         ' + lpad(Math.round(FS.capacity / 1024) + 'K', 9) + lpad(Math.ceil(used / 1024) + 'K', 11) + lpad(Math.floor((FS.capacity - used) / 1024) + 'K', 11));
           T.print('');
-          T.out('S79DOS is resident in the high prairie memory area.', 'dim');
+          T.out('S79-DOS is resident in the high prairie memory area.', 'dim');
           return;
         }
         case 'QUEST': case 'FORTUNE':
@@ -387,7 +387,7 @@
           return;
         case 'S79': case 'WIN':
           if (cmd === 'WIN') { T.out('Bad command or file name. (Did you mean S79?)', 'err'); return; }
-          if (T.mode === 'window') { T.out('Spreck79 3.1 is already running.', 'dim'); return; }
+          if (T.mode === 'window') { T.out('spreck79 3.1 is already running.', 'dim'); return; }
           await S79.startGUI();
           return;
         case 'EDIT': case 'S79EDIT':
@@ -405,14 +405,14 @@
         if (prog.endsWith('.BAT')) return T.runBatch(prog);
         const node = FS.get(prog);
         if (node.app === 'edit') return T.edit(rest);
-        if (node.app === 'dos') { T.out('S79DOS is already running. You are in it!', 'dim'); return; }
+        if (node.app === 'dos') { T.out('S79-DOS is already running. You are in it!', 'dim'); return; }
         if (T.mode === 'window') {
           const file = rest ? FS.resolve(T.cwd, rest) : null;
           S79.launch(node.app, file && FS.isFile(file) ? { file } : {});
           return;
         }
         if (node.app === 'questmgr') { await S79.startGUI(); return; }
-        if (node.app) { T.out('This program requires Spreck79 3.1. Type S79 to start it.', 'err'); return; }
+        if (node.app) { T.out('This program requires spreck79 3.1. Type S79 to start it.', 'err'); return; }
         T.out('Cannot run that file.', 'err');
         return;
       }
@@ -570,7 +570,7 @@
     let skip = false;
     const f8 = (e) => { if (e.key === 'F8') { skip = true; e.preventDefault(); } };
     addEventListener('keydown', f8);
-    T.print('<span class="hi">Spreck79 Prairie BIOS</span> v3.1   (C) 1979-2026 spreck79');
+    T.print('<span class="hi">spreck79 Prairie BIOS</span> v3.1   (C) 1979-2026 spreck79');
     T.out('Low roofline chipset, horizontal bus, earth-tone video', 'dim');
     T.print('');
     const mem = T.out('Memory test:      0K');
@@ -584,15 +584,15 @@
     T.print('');
     T.print('<span class="red">' + '\u2588'.repeat(34) + '</span>');
     T.print('<span class="och">' + '\u2584'.repeat(34) + '</span>');
-    T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79DOS 3.1</span>');
+    T.print('<span class="sla">' + '\u2588'.repeat(34) + '</span>   <span class="hi">S79-DOS 3.1</span>');
     T.print('');
-    T.out('Starting S79DOS...');
+    T.out('Starting S79-DOS...');
     T.out('Press F8 to skip AUTOEXEC.BAT', 'dim');
     await sleep(1100);
     removeEventListener('keydown', f8);
     T.print('');
     if (skip) {
-      T.out('S79DOS is bypassing your AUTOEXEC.BAT file.', 'hi');
+      T.out('S79-DOS is bypassing your AUTOEXEC.BAT file.', 'hi');
       T.print('');
     } else if (FS.isFile('C:\\AUTOEXEC.BAT')) {
       await T.runBatch('C:\\AUTOEXEC.BAT');
