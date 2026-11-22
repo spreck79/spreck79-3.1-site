@@ -8,7 +8,7 @@
   const GROUPS = [
     { id: 'main', title: 'Main', x: 12, y: 12, w: 380, h: 190, items: ['prompt', 'cabinet', 'control', 'readme', 'about'] },
     { id: 'side', title: 'Side Quests', x: 404, y: 12, w: 330, h: 190, items: ['jotter', 'sketch', 'tally', 'clock', 'lookout'] },
-    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher', 'harvest'], min: true },
+    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher', 'harvest', 'backlog'], min: true },
     { id: 'log', title: 'Quest Log', x: 264, y: 214, w: 360, h: 150, dynamic: 'C:\\QUESTS', min: true },
   ];
   const ITEM = {
@@ -24,6 +24,7 @@
     gopher: { label: 'Gopher Fields', icon: 'gopher', run: () => S79.launch('gopher') },
     lookout: { label: 'Lookout', icon: 'lookout', run: () => S79.launch('lookout') },
     harvest: { label: 'Harvest', icon: 'harvest', run: () => S79.launch('harvest') },
+    backlog: { label: 'BACKLOG', icon: 'backlog', run: () => S79.launch('backlog') },
   };
 
   function iconEl(label, svg, run) {
@@ -781,6 +782,13 @@
         c.appendChild(bb);
       });
     },
+  };
+
+  // ======================= BACKLOG (a DOS game) =======================
+  // BACKLOG runs in S79-DOS (js/backlog.js). From the desktop, open an S79-DOS Prompt and start it there.
+  A.backlog = {
+    title: 'BACKLOG', icon: 'backlog',
+    open() { return S79.launch('prompt', { run: 'BACKLOG' }); },
   };
 
   // ======================= Harvest (game) =======================

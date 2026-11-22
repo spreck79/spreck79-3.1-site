@@ -275,6 +275,7 @@
           for (const [c, d] of HELP) T.print(`<span class="och">${esc(pad(c, 9))}</span>${esc(d)}`);
           T.print('');
           T.out('Programs on the PATH can be run by name: JOTTER, TALLY, SKETCH, GOPHER...', 'dim');
+          T.out('Feeling brave? Type BACKLOG.', 'dim');
           return;
         case 'CLS': T.clear(); return;
         case 'VER':
@@ -431,6 +432,12 @@
         const node = FS.get(prog);
         if (node.app === 'edit') return T.edit(rest);
         if (node.app === 'dos') { T.out('S79-DOS is already running. You are in it!', 'dim'); return; }
+        if (node.app === 'backlog') { // a DOS game: it takes over this S79-DOS screen until you quit
+          T.out('Loading BACKLOG...', 'dim');
+          const st = await S79Backlog.play(T);
+          T.out('Thanks for playing BACKLOG. Side quests cleared: ' + st.kills + (st.levels ? ', levels finished: ' + st.levels : '') + '.');
+          return;
+        }
         if (T.mode === 'window') {
           const file = rest ? FS.resolve(T.cwd, rest) : null;
           S79.launch(node.app, file && FS.isFile(file) ? { file } : {});

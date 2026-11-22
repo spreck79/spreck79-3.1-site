@@ -44,6 +44,7 @@
         'S79PROMT.EXE': file('', { app: 'prompt', size: 9248 }),
         'LOOKOUT.EXE': file('', { app: 'lookout', size: 61979 }),
         'HARVEST.EXE': file('', { app: 'harvest', size: 31979 }),
+        'BACKLOG.EXE': file('', { app: 'backlog', size: 79790 }),
         'S79.INI': file('[desktop]\r\ntheme=prairie\r\nwallpaper=grid\r\n\r\n[spreck79]\r\nmotto=All side quests. No main story.\r\n'),
         SYSTEM: dir({
           'PRAIRIE.SYS': file('', { size: 7979 }),
@@ -63,6 +64,7 @@
       GAMES: dir({
         'GOPHER.EXE': file('', { app: 'gopher', size: 27904 }),
         'HARVEST.EXE': file('', { app: 'harvest', size: 31979 }),
+        'BACKLOG.EXE': file('', { app: 'backlog', size: 79790 }),
         'SCORES.TXT': file('GOPHER FIELDS — BEST TIMES\r\n\r\nNo times yet. Go find some gophers.\r\n'),
       }),
     });

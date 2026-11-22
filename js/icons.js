@@ -52,6 +52,14 @@
     lookout: wrap(`<rect x="3" y="5" width="34" height="30" fill="${C}" stroke="${W}" stroke-width="2"/><rect x="4" y="6" width="32" height="5" fill="${S}"/>
       <rect x="5" y="13" width="30" height="12" fill="#8FB0BF"/><rect x="24" y="15" width="6" height="6" fill="${R}"/>
       <rect x="5" y="25" width="30" height="3" fill="${O}"/><rect x="5" y="28" width="30" height="6" fill="${G}"/><rect x="19" y="11" width="2" height="23" fill="${W}"/>`),
+    // BACKLOG: a hallway in perspective with a spaghetti gremlin at the end.
+    backlog: wrap(`<rect x="3" y="4" width="34" height="32" fill="#171310" stroke="${W}" stroke-width="2"/>
+      <path d="M4 5 L15 14 L25 14 L36 5 Z" fill="#E4D8C1"/><path d="M4 35 L15 26 L25 26 L36 35 Z" fill="#5E5245"/>
+      <path d="M4 5 L15 14 L15 26 L4 35 Z" fill="${R}"/><path d="M36 5 L25 14 L25 26 L36 35 Z" fill="${S}"/>
+      <rect x="15" y="14" width="10" height="12" fill="#2E2620"/>
+      <circle cx="20" cy="22" r="3.5" fill="none" stroke="${O}" stroke-width="1.5" shape-rendering="geometricPrecision"/>
+      <rect x="18" y="20" width="1.5" height="1.5" fill="${C}"/><rect x="20.5" y="20" width="1.5" height="1.5" fill="${C}"/>
+      <rect x="19" y="31" width="2" height="4" fill="#E0735C"/>`),
     // Harvest: a red tractor pulling a hay wagon across the field.
     harvest: wrap(`<rect x="2" y="26" width="36" height="10" fill="${G}" stroke="${W}" stroke-width="2"/>
       <rect x="3" y="15" width="11" height="9" fill="${O}" stroke="${W}" stroke-width="1.5"/><rect x="4" y="18" width="9" height="1.5" fill="#9E7020"/><rect x="4" y="21" width="9" height="1.5" fill="#9E7020"/>
