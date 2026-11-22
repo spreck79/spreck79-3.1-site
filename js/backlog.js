@@ -353,7 +353,8 @@
           zbuf[x] = dist;
           const lh = VH / dist, y0 = (VH - lh) / 2;
           let wx = side === 0 ? py + dist * rdy : px + dist * rdx; wx -= Math.floor(wx);
-          let tx = (wx * T) | 0; if ((side === 0 && rdx > 0) || (side === 1 && rdy < 0)) tx = T - tx - 1;
+          // Read the texture left to right as the screen goes left to right (y points down on this map).
+          let tx = (wx * T) | 0; if ((side === 0 && rdx < 0) || (side === 1 && rdy > 0)) tx = T - tx - 1;
           const tex = WALL_TEX[WALLS[ch]];
           const f = Math.max(0.22, Math.min(1, 1.5 / (dist * 0.5 + 0.55))) * (side ? 0.8 : 1);
           const ys = Math.max(0, y0 | 0), ye = Math.min(VH, (y0 + lh) | 0), step = T / lh;
