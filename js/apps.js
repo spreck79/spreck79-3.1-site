@@ -8,7 +8,7 @@
   const GROUPS = [
     { id: 'main', title: 'Main', x: 12, y: 12, w: 380, h: 190, items: ['prompt', 'cabinet', 'control', 'readme', 'about'] },
     { id: 'side', title: 'Side Quests', x: 404, y: 12, w: 330, h: 190, items: ['jotter', 'sketch', 'tally', 'clock', 'lookout'] },
-    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher', 'harvest', 'backlog'], min: true },
+    { id: 'games', title: 'Games', x: 12, y: 214, w: 240, h: 150, items: ['gopher', 'harvest'], min: true },
     { id: 'log', title: 'Quest Log', x: 264, y: 214, w: 360, h: 150, dynamic: 'C:\\QUESTS', min: true },
   ];
   const ITEM = {
@@ -785,7 +785,8 @@
   };
 
   // ======================= BACKLOG (a DOS game) =======================
-  // BACKLOG runs in S79-DOS (js/backlog.js). From the desktop, open an S79-DOS Prompt and start it there.
+  // BACKLOG runs only in real S79-DOS (js/backlog.js), not on the desktop. Opening BACKLOG.EXE from the
+  // desktop opens an S79-DOS Prompt, which says to exit spreck79 3.1 first.
   A.backlog = {
     title: 'BACKLOG', icon: 'backlog',
     open() { return S79.launch('prompt', { run: 'BACKLOG' }); },

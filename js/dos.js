@@ -432,7 +432,8 @@
         const node = FS.get(prog);
         if (node.app === 'edit') return T.edit(rest);
         if (node.app === 'dos') { T.out('S79-DOS is already running. You are in it!', 'dim'); return; }
-        if (node.app === 'backlog') { // a DOS game: it takes over this S79-DOS screen until you quit
+        if (node.app === 'backlog') { // a DOS game: it takes over the S79-DOS screen until you quit
+          if (T.mode === 'window') { T.out('This program cannot run while spreck79 3.1 is running.', 'err'); T.out('Exit spreck79 3.1 first (Quest Manager: File > Exit spreck79), then type BACKLOG at the S79-DOS prompt.', 'dim'); return; }
           T.out('Loading BACKLOG...', 'dim');
           const st = await S79Backlog.play(T);
           T.out('Thanks for playing BACKLOG. Side quests cleared: ' + st.kills + (st.levels ? ', levels finished: ' + st.levels : '') + '.');
