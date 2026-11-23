@@ -6,6 +6,84 @@
   const file = (content, extra) => Object.assign({ type: 'file', content, mtime: now() }, extra || {});
   const dir = (children) => ({ type: 'dir', children: children || {}, mtime: now() });
 
+  // BACKLOG is a DOS game, so it lives in its own directory like DOS games did: CD \BACKLOG, then BACKLOG.
+  function backlogDir() {
+    const t = new Date(1979, 10, 22, 13, 9).getTime(); // every file ships with the same release stamp
+    const f = (content, extra) => file(content, Object.assign({ mtime: t }, extra || {}));
+    return Object.assign(dir({
+      'BACKLOG.EXE': f('', { app: 'backlog', size: 712079 }),
+      'BACKLOG.QST': f('', { size: 11079790 }),
+      'SETUP.EXE': f('', { app: 'blsetup', size: 47979 }),
+      'DEFAULT.CFG': f([
+        'mouse_sensitivity   5',
+        'sfx_volume          8',
+        'snack_volume        11',
+        'key_right           77',
+        'key_left            75',
+        'key_up              72',
+        'key_down            80',
+        'key_strafeleft      16',
+        'key_straferight     18',
+        'key_fire            57',
+        'use_mouse           0',
+        'sound_card          PC SPEAKER',
+        'detail_level        HIGH',
+        'show_messages       1',
+      ].join('\r\n')),
+      'TAGTEAM.EXE': f('', { app: 'bltagteam', size: 42779 }),
+      'BACKFAQ.TXT': f([
+        'BACKLOG FREQUENTLY ASKED QUESTIONS',
+        '',
+        'Q: Can I finish the backlog?',
+        'A: No. Nobody has. You can clear a few rooms.',
+        '',
+        'Q: Where do the gremlins come from?',
+        'A: The 3D printer, around 3 a.m.',
+        '',
+        'Q: Is there a main story?',
+        'A: No. All side quests.',
+        '',
+        'Q: How do I play with a friend?',
+        'A: TAGTEAM.EXE, a null-modem cable and a friend. You have one of the three.',
+      ].join('\r\n')),
+      'ORDER.TXT': f([
+        'HOW TO ORDER THE FULL BACKLOG',
+        '',
+        'You already have it. It only gets longer.',
+        '',
+        'Price: three snacks and one free weekend.',
+      ].join('\r\n')),
+      'README.TXT': f([
+        'BACKLOG',
+        'A first-person side quest for S79-DOS.',
+        '',
+        'Your unfinished side quests came alive. Clear them out of',
+        'the house with a foam-dart blaster.',
+        '',
+        'TO PLAY',
+        '  C:\\> CD \\BACKLOG',
+        '  C:\\BACKLOG> BACKLOG',
+        '',
+        'BACKLOG needs all of S79-DOS. It will not run in an',
+        'S79-DOS Prompt window while spreck79 3.1 is running.',
+        '',
+        'KEYS',
+        '  Arrows or WASD   move and turn',
+        '  Q / E            step sideways',
+        '  Space            fire',
+        '  Esc              pause (Resume or Quit to S79-DOS)',
+        '',
+        'On a phone, use the on-screen pad.',
+        '',
+        'Find the striped EXIT door to finish each level.',
+        'Snacks put health back. Bring snacks.',
+        '',
+        'SETUP.EXE shows your sound and key settings (DEFAULT.CFG).',
+        'TAGTEAM.EXE is two-player over a null-modem cable.',
+      ].join('\r\n')),
+    }), { mtime: t });
+  }
+
   function defaultDisk() {
     return dir({
       'AUTOEXEC.BAT': file('@ECHO OFF\r\nPROMPT $P$G\r\nPATH C:\\S79;C:\\S79\\SYSTEM\r\nECHO Loading side quests...\r\nS79\r\n'),
@@ -44,7 +122,6 @@
         'S79PROMT.EXE': file('', { app: 'prompt', size: 9248 }),
         'LOOKOUT.EXE': file('', { app: 'lookout', size: 61979 }),
         'HARVEST.EXE': file('', { app: 'harvest', size: 31979 }),
-        'BACKLOG.EXE': file('', { app: 'backlog', size: 79790 }),
         'S79.INI': file('[desktop]\r\ntheme=prairie\r\nwallpaper=grid\r\n\r\n[spreck79]\r\nmotto=All side quests. No main story.\r\n'),
         SYSTEM: dir({
           'PRAIRIE.SYS': file('', { size: 7979 }),
@@ -59,12 +136,12 @@
         'HIKING.TXT': file('SIDE QUEST: HIKING\r\n\r\n[ ] Find a trail with a low, long view\r\n[ ] Pack the good snacks\r\n[ ] Leave no trace, take a few photos\r\n'),
         'NEXT.TXT': file('SIDE QUEST: WHATEVER COMES NEXT\r\n\r\nTo be decided. That is the whole point.\r\n'),
       }),
+      BACKLOG: backlogDir(),
       DOCS: dir({}),
       PICTURES: dir({}),
       GAMES: dir({
         'GOPHER.EXE': file('', { app: 'gopher', size: 27904 }),
         'HARVEST.EXE': file('', { app: 'harvest', size: 31979 }),
-        'BACKLOG.EXE': file('', { app: 'backlog', size: 79790 }),
         'SCORES.TXT': file('GOPHER FIELDS — BEST TIMES\r\n\r\nNo times yet. Go find some gophers.\r\n'),
       }),
     });
@@ -72,13 +149,22 @@
 
   let root;
   try { root = JSON.parse(localStorage.getItem(KEY)); } catch (e) { root = null; }
-  if (!root || root.type !== 'dir') root = defaultDisk();
+  if (!root || root.type !== 'dir') { root = defaultDisk(); root.backlogHome = 1; }
   // Disks saved before a program shipped don't have it yet: add any missing programs to C:\S79.
   (function addNewPrograms() {
     const fresh = defaultDisk().children.S79.children, s79 = root.children && root.children.S79;
     if (!s79 || s79.type !== 'dir') return;
     for (const [name, node] of Object.entries(fresh)) if (node.app && !s79.children[name]) s79.children[name] = node;
   })();
+
+  // Older disks had BACKLOG.EXE in C:\S79 and C:\GAMES. Move it into its own C:\BACKLOG, once.
+  if (!root.backlogHome) {
+    const c = root.children;
+    for (const d of ['S79', 'GAMES']) { const n = c[d]; if (n && n.type === 'dir' && n.children['BACKLOG.EXE'] && n.children['BACKLOG.EXE'].app === 'backlog') delete n.children['BACKLOG.EXE']; }
+    if (!c.BACKLOG) c.BACKLOG = backlogDir();
+    root.backlogHome = 1;
+    try { localStorage.setItem(KEY, JSON.stringify(root)); } catch (e) { /* disk full */ }
+  }
 
   let saveTimer = null;
   function save() {
@@ -220,7 +306,7 @@
     used() { return sizeOf(root); },
     capacity: 79 * 1024 * 1024,
 
-    format() { root = defaultDisk(); save(); },
+    format() { root = defaultDisk(); root.backlogHome = 1; save(); },
   };
 
   window.S79FS = api;

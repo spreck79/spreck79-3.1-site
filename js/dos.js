@@ -275,7 +275,7 @@
           for (const [c, d] of HELP) T.print(`<span class="och">${esc(pad(c, 9))}</span>${esc(d)}`);
           T.print('');
           T.out('Programs on the PATH can be run by name: JOTTER, TALLY, SKETCH, GOPHER...', 'dim');
-          T.out('Feeling brave? Type BACKLOG.', 'dim');
+          T.out('Feeling brave? CD \\BACKLOG, then type BACKLOG.', 'dim');
           return;
         case 'CLS': T.clear(); return;
         case 'VER':
@@ -337,7 +337,7 @@
           const p = FS.resolve(T.cwd, rest);
           if (!FS.isFile(p)) { T.out('File not found - ' + rest.toUpperCase(), 'err'); return; }
           const n = FS.get(p);
-          if (n.app || /\.(EXE|COM|SYS|DRV|FON)$/.test(p)) { T.out('MZ\u00e0\u00a7\u0001\u0002 ... (that is a program, not a text file)', 'dim'); return; }
+          if (n.app || /\.(EXE|COM|SYS|DRV|FON|QST)$/.test(p)) { T.out('MZ\u00e0\u00a7\u0001\u0002 ... (that is a program, not a text file)', 'dim'); return; }
           if (/\.PIC$/.test(p)) { T.out('[a picture. Open it with SKETCH to look at it]', 'dim'); return; }
           T.out(n.content.replace(/\r/g, '')); return;
         }
@@ -432,8 +432,22 @@
         const node = FS.get(prog);
         if (node.app === 'edit') return T.edit(rest);
         if (node.app === 'dos') { T.out('S79-DOS is already running. You are in it!', 'dim'); return; }
+        if (node.app === 'blsetup') { // BACKLOG's setup: shows what DEFAULT.CFG says
+          T.out('BACKLOG SETUP', 'hi');
+          T.out('Sound card ......... PC Speaker (the only one that ever worked)');
+          T.out('Snack volume ....... 11');
+          T.out('Controls ........... Keyboard. Settings live in DEFAULT.CFG.');
+          T.out('Setup complete. Type BACKLOG to play.', 'dim');
+          return;
+        }
+        if (node.app === 'bltagteam') {
+          T.out('TAGTEAM: looking for a null-modem cable on COM1...');
+          await sleep(900);
+          T.out('No cable. No friend. Playing alone is still allowed: type BACKLOG.', 'err');
+          return;
+        }
         if (node.app === 'backlog') { // a DOS game: it takes over the S79-DOS screen until you quit
-          if (T.mode === 'window') { T.out('This program cannot run while spreck79 3.1 is running.', 'err'); T.out('Exit spreck79 3.1 first (Quest Manager: File > Exit spreck79), then type BACKLOG at the S79-DOS prompt.', 'dim'); return; }
+          if (T.mode === 'window') { T.out('This program cannot run while spreck79 3.1 is running.', 'err'); T.out('Exit spreck79 3.1 first (Quest Manager: File > Exit spreck79), then type CD \\BACKLOG and BACKLOG at the S79-DOS prompt.', 'dim'); return; }
           T.out('Loading BACKLOG...', 'dim');
           const st = await S79Backlog.play(T);
           T.out('Thanks for playing BACKLOG. Side quests cleared: ' + st.kills + (st.levels ? ', levels finished: ' + st.levels : '') + '.');

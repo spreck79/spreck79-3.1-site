@@ -72,6 +72,7 @@
       if (node.app) return S79.launch(node.app);
       if (/\.PIC$/.test(p)) return S79.launch('sketch', { file: p });
       if (/\.BAT$/.test(p)) return S79.launch('prompt', { batch: p });
+      if (/\.QST$/.test(p)) return WM.msgBox({ title: 'spreck79', icon: 'info', text: FS.parentOf(p).name + ' holds the levels for BACKLOG.\nIt is not something you open. It is something you play.' });
       if (/\.(SYS|DRV|FON)$/.test(p) && !node.content) return WM.msgBox({ title: 'spreck79', icon: 'info', text: FS.parentOf(p).name + ' is a system file.\nIt keeps the prairie running. Best left alone.' });
       return S79.launch('jotter', { file: p });
     },

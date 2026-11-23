@@ -789,8 +789,10 @@
   // desktop opens an S79-DOS Prompt, which says to exit spreck79 3.1 first.
   A.backlog = {
     title: 'BACKLOG', icon: 'backlog',
-    open() { return S79.launch('prompt', { run: 'BACKLOG' }); },
+    open() { return S79.launch('prompt', { run: 'C:\\BACKLOG\\BACKLOG' }); },
   };
+  A.blsetup = { title: 'BACKLOG Setup', icon: 'backlog', open() { return S79.launch('prompt', { run: 'C:\\BACKLOG\\SETUP' }); } };
+  A.bltagteam = { title: 'TAGTEAM', icon: 'backlog', open() { return S79.launch('prompt', { run: 'C:\\BACKLOG\\TAGTEAM' }); } };
 
   // ======================= Harvest (game) =======================
   // Drive the tractor around the field and pick up hay bales. Every bale hooks another wagon on
